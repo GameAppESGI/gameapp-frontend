@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { GetAllUsers, GetCurrentUser } from '../api-calls/users';
+import { GetAllChats, CreateNewChat } from '../api-calls/chats';
 import { toast } from 'react-hot-toast';
 import { useDispatch, useSelector } from 'react-redux';
 import { ShowLoader, HideLoader } from '../redux/loaderSlice';
-import { SetAllUsers, SetUser } from '../redux/userSlice';
+import { SetAllUsers, SetUser, SetAllChats } from '../redux/userSlice';
 import * as Icon from 'react-bootstrap-icons';
 
     function ProtectedRoute({children}) {
@@ -16,10 +17,12 @@ import * as Icon from 'react-bootstrap-icons';
                 dispatch(ShowLoader());
                 const response = await GetCurrentUser();
                 const allUsersResponse = await GetAllUsers();
+                const allChatsResponse = await GetAllChats();
                 dispatch(HideLoader());
                 if(response.success) {
                     dispatch(SetUser(response.data));
                     dispatch(SetAllUsers(allUsersResponse.data));
+                    dispatch(SetAllChats(allChatsResponse.data));
                 }
                 else {
                     toast.error(response.message);

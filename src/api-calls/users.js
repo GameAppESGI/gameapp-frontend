@@ -38,3 +38,4 @@ export const GetAllUsers = async () => {
         return error.response.data;
     }
 }
+
