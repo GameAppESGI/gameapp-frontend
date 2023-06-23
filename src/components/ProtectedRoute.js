@@ -48,11 +48,11 @@ import * as Icon from 'react-bootstrap-icons';
 
     return (
         <div className='w-screen h-screen'>
-            <div>
-                <div className='flex justify-between p-7 m-3 rounded-xl bg-gray-100'>
+            <div className='w-full'>
+                <div className='flex justify-between p-3 m-1 rounded-xl bg-gray-100 w-full'>
                     <div className='flex items-center gap-1'>
-                        <Icon.Controller size={100}></Icon.Controller>
-                        <h1 className='text-3xl uppercase font-semibold text-green-700'>GAMEAPP</h1>
+                        <Icon.Controller size={50}></Icon.Controller>
+                        <h1 className='text-2xl uppercase font-semibold text-green-700'>GAMEAPP</h1>
                     </div>
                     <div className='flex items-center gap-2'>
                         <h1 className='text-green-700 text-2xl'>{user?.name}</h1>
@@ -68,7 +68,7 @@ import * as Icon from 'react-bootstrap-icons';
                     </div>
                 </div>
             </div>
-            <div className='flex justify-between p-7 m-3 bg-gray-100 rounded-xl' >
+            <div className='flex justify-between p-3 m-1 bg-gray-100 rounded-xl w-full' >
                 {children}
             </div>
         </div>
