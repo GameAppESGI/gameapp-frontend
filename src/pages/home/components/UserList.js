@@ -65,7 +65,7 @@ function UserList({ searchKey }) {
             return "";
         }
         else {
-            const lstMessagePerson = chat?.lastMessage?.sender == user._id ? "You:" : "";
+            const lstMessagePerson = chat?.lastMessage?.sender === user._id ? "You:" : "";
             return (<div className='flex justify-between'>
                 <h1 className='text-xs'>{lstMessagePerson} {chat.lastMessage?.text}</h1>
                 <h1 className='text-xs'>{moment(chat?.lastMessage?.createdAt).format("hh:mm dd")}</h1>
