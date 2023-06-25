@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+    font-size: 13px
+  }
+
 * {
     font-family: 'Nunito Sans', sans-serif;
     font-size: 20px;

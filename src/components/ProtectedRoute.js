@@ -68,7 +68,7 @@ import * as Icon from 'react-bootstrap-icons';
                     </div>
                 </div>
             </div>
-            <div className='flex justify-between p-3 m-1 bg-gray-100 rounded-xl w-full' >
+            <div className='flex justify-between p-3 m-1 bg-gray-100 rounded-xl w-full h-full' >
                 {children}
             </div>
         </div>

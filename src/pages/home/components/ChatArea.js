@@ -5,13 +5,16 @@ import { SendMessage, GetMessages } from '../../../api-calls/messages';
 import { HideLoader, ShowLoader } from '../../../redux/loaderSlice';
 import { toast } from 'react-hot-toast';
 import moment from 'moment';
+import { ReadAllMessages } from '../../../api-calls/chats';
+import { SetAllChats } from '../../../redux/userSlice';
 
 function ChatArea() {
   const dispatch = useDispatch();
 
   const [newMessage, setNewMessage] = React.useState("");
-  const { selectedChat, user } = useSelector((state) => state.userReducer);
+  const { selectedChat, user, allChats } = useSelector((state) => state.userReducer);
   const [messages = [], setMessages] = React.useState([]);
+
   const otherUser = selectedChat.members.find(
     (mem) => mem._id !== user._id
   );
@@ -50,12 +53,35 @@ function ChatArea() {
     }
   };
 
+  const readAllMessages = async () => {
+    try {
+      dispatch(ShowLoader());
+      const response = await ReadAllMessages(selectedChat._id);
+      dispatch(HideLoader());
+      if(response.success) {
+        const updatedChats = allChats.map((chat) => {
+          if(chat._id === selectedChat._id) {
+            return response.data;
+          } 
+          return chat;
+        });
+        dispatch(SetAllChats(updatedChats));
+      }
+    } catch (error) {
+      dispatch(HideLoader());
+      toast.error(error.message);
+    }
+  };
+
   useEffect(() => {
     getMessages();
+    if(selectedChat?.lastMessage?.sender !== user._id) {
+      readAllMessages();
+    }
   }, [selectedChat]);
 
   return (
-    <div className='bg-white h-full border rounded w-full flex flex-col justify-between p-2'>
+    <div className='bg-white h-[85vh] border rounded w-full flex flex-col justify-between p-2'>
       <div>
         <div className='flex gap-2 items-center mb-2'>
           {otherUser.profilePic && (
@@ -84,13 +110,14 @@ function ChatArea() {
                 >{message.text}</h1>
                 <h1 className='text-sm'>{moment(message.createdAt).format("dd hh:mm")}</h1>
               </div>
+              {isCurrentUserTheSender && <Icon.CheckAll className={`${message.read? "text-green-700" : "text-gray-200"}`}></Icon.CheckAll>}
             </div>
             );
           })}
         </div>
       </div>
       <div>
-        <div className='h-10 rounded-2xl border flex justify-between'>
+        <div className='h-10 rounded-2xl border flex justify-between text-xs'>
           <input type="text" placeholder='write something...'
             className='w-[100%] border-0 h-full rounded-2xl focus:border-none'
             value={newMessage}

@@ -17,3 +17,14 @@ export const CreateNewChat = async (members) => {
         return error.response.data;
     }
 }
+
+export const ReadAllMessages = async (chatId) => {
+    try {
+        const response = await axiosInstance.post("/api/chats/read-all-messages", {
+            chat: chatId,
+        });
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+}
