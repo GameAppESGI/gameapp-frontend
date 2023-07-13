@@ -7,8 +7,9 @@ import { toast } from 'react-hot-toast';
 import moment from 'moment';
 import { ReadAllMessages } from '../../../api-calls/chats';
 import { SetAllChats } from '../../../redux/userSlice';
+import store from "../../../redux/store";
 
-function ChatArea() {
+function ChatArea({socket}) {
   const dispatch = useDispatch();
 
   const [newMessage, setNewMessage] = React.useState("");
@@ -21,19 +22,23 @@ function ChatArea() {
 
   const sendNewMessage = async () => {
     try {
-      dispatch(ShowLoader());
       const message = {
         chat: selectedChat._id,
         sender: user._id,
         text: newMessage,
       };
+      socket.emit("send-new-message", {
+        ...message,
+        members: selectedChat.members.map((member) => member._id),
+        createdAt: moment(),
+        read: false,
+      });
+
       const response = await SendMessage(message);
-      dispatch(HideLoader());
       if (response.success) {
         setNewMessage("")
       }
     } catch (error) {
-      dispatch(HideLoader());
       toast.error(error.message);
     }
   };
@@ -55,9 +60,13 @@ function ChatArea() {
 
   const readAllMessages = async () => {
     try {
-      dispatch(ShowLoader());
+
+      socket.emit("read-all-messages", {
+        chat: selectedChat._id,
+        members: selectedChat.members.map((member) => member._id),
+      });
+
       const response = await ReadAllMessages(selectedChat._id);
-      dispatch(HideLoader());
       if(response.success) {
         const updatedChats = allChats.map((chat) => {
           if(chat._id === selectedChat._id) {
@@ -68,7 +77,6 @@ function ChatArea() {
         dispatch(SetAllChats(updatedChats));
       }
     } catch (error) {
-      dispatch(HideLoader());
       toast.error(error.message);
     }
   };
@@ -78,7 +86,50 @@ function ChatArea() {
     if(selectedChat?.lastMessage?.sender !== user._id) {
       readAllMessages();
     }
+
+    socket.off("receive-message").on("receive-message", (message) => {
+      const selectedChatTemp = store.getState().userReducer.selectedChat;
+      if(selectedChatTemp._id === message.chat) {
+        setMessages((messages) => [...messages, message]);
+      }
+      if(selectedChatTemp._id === message.chat && message.sender !== user._id) {
+        readAllMessages();
+      }
+    });
+
+    socket.on("unread-messages-cleared", (data) => {
+      const tempAllChats = store.getState().userReducer.allChats;
+      const tempSelectedChat = store.getState().userReducer.selectedChat;
+
+      if(data.chat === tempSelectedChat._id) {
+        const updatedChats = tempAllChats.map((chat) => {
+          if(chat._id === data.chat) {
+            return {
+              ...chat,
+              unreadMessages: 0,
+            };
+          }
+          return chat;
+        });
+        dispatch(SetAllChats(updatedChats));
+
+        setMessages(prevState => {
+          return prevState.map(message => {
+            return {
+              ...message,
+              read: true
+            };
+          });
+        });
+      }
+    });
+
   }, [selectedChat]);
+
+  useEffect(() => {
+    const messagesContainer = document.getElementById('messages');
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }, [messages]);
 
   return (
     <div className='bg-white h-[85vh] border rounded w-full flex flex-col justify-between p-2'>
@@ -98,7 +149,8 @@ function ChatArea() {
         </div>
         <hr />
       </div>
-      <div className='h-[65vh] overflow-y-scroll '>
+      <div className='h-[65vh] overflow-y-scroll '
+        id={"messages"}>
         <div className='flex flex-col gap-2'>
           {messages.map((message) => {
             const isCurrentUserTheSender = message.sender === user._id;

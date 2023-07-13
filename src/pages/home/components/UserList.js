@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useEffect} from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import * as Icon from 'react-bootstrap-icons';
 import { CreateNewChat } from '../../../api-calls/chats';
@@ -6,8 +6,9 @@ import { SetAllChats, SetSelectedChat } from '../../../redux/userSlice';
 import { toast } from 'react-hot-toast';
 import { HideLoader, ShowLoader } from '../../../redux/loaderSlice';
 import moment from 'moment';
+import store from "../../../redux/store";
 
-function UserList({ searchKey }) {
+function UserList({ searchKey, socket }) {
     const { allUsers, allChats, user, selectedChat } = useSelector((state) => state.userReducer);
     const dispatch = useDispatch();
     const createNewChat = async (withUserId) => {
@@ -83,6 +84,27 @@ function UserList({ searchKey }) {
             );
         }
     };
+
+    useEffect(() => {
+        socket.on("receive-message", (message) => {
+            const tempSelectedChat = store.getState().userReducer.selectedChat;
+            const tempAllChats = store.getState().userReducer.allChats;
+            if(tempSelectedChat?._id !== message.chat) {
+                const updatedAllChats = tempAllChats.map((chat) => {
+                    if(chat._id === message.chat) {
+                        return {
+                            ...chat,
+                            unreadMessages: (chat?.unreadMessages || 0) +1,
+                            lastMessage: message,
+                            updatedAt: message.createdAt,
+                        };
+                    }
+                    return chat;
+                });
+                dispatch(SetAllChats(updatedAllChats));
+            }
+        });
+    }, [allChats]);
 
     return (
         <div className='flex flex-col mt-5'>
