@@ -8,34 +8,34 @@ import { HideLoader, ShowLoader } from '../../../redux/loaderSlice';
 import moment from 'moment';
 import store from "../../../redux/store";
 
-function UserList({ searchKey, socket }) {
+function UserList({ searchKey, socket, onlineUsers }) {
     const { allUsers, allChats, user, selectedChat } = useSelector((state) => state.userReducer);
     const dispatch = useDispatch();
-    const createNewChat = async (withUserId) => {
+    const createNewChat = async (receipentUserId) => {
         try {
             dispatch(ShowLoader());
-            const response = await CreateNewChat([user._id, withUserId]);
-            dispatch(HideLoader())
+            const response = await CreateNewChat([user._id, receipentUserId]);
+            dispatch(HideLoader());
             if (response.success) {
                 toast.success(response.message);
                 const newChat = response.data;
                 const updatedChats = [...allChats, newChat];
                 dispatch(SetAllChats(updatedChats));
                 dispatch(SetSelectedChat(newChat));
-            }
-            else {
+            } else {
                 toast.error(response.message);
             }
         } catch (error) {
+            dispatch(HideLoader());
             toast.error(error.message);
         }
     };
 
-    const openChat = (withUserId) => {
+    const openChat = (receipentUserId) => {
         const chat = allChats.find(
             (chat) =>
                 chat.members.map((mem) => mem._id).includes(user._id) &&
-                chat.members.map((mem) => mem._id).includes(withUserId)
+                chat.members.map((mem) => mem._id).includes(receipentUserId)
         );
         if (chat) {
             dispatch(SetSelectedChat(chat));
@@ -43,40 +43,51 @@ function UserList({ searchKey, socket }) {
     };
 
     const getData = () => {
-        if (searchKey === "") {
-            return allChats;
-        }
-        else {
-            return allUsers.filter((user) => user.name.includes(searchKey));
+        // if search key is empty then return all chats else return filtered chats and users
+        try {
+            if (searchKey === "") {
+                return allChats || [];
+            }
+            return allUsers.filter(
+                (user) =>
+                    user.name.toLowerCase().includes(searchKey.toLowerCase()) || []
+            );
+        } catch (error) {
+            return [];
         }
     };
 
     const getIsSelectedChatOrNot = (userObj) => {
         if (selectedChat) {
-            return selectedChat.members.map((mem) => mem._id).includes(userObj._id)
+            return selectedChat.members.map((mem) => mem._id).includes(userObj._id);
         }
         return false;
     };
 
     const getLastMessage = (userObj) => {
-        const chat = allChats.find(
-            (chat) => chat.members.map((mem) => mem._id).includes(userObj._id)
+        const chat = allChats.find((chat) =>
+            chat.members.map((mem) => mem._id).includes(userObj._id)
         );
         if (!chat || !chat.lastMessage) {
             return "";
-        }
-        else {
+        } else {
             const lstMessagePerson = chat?.lastMessage?.sender === user._id ? "You:" : "";
             return (<div className='flex justify-between'>
-                <h1 className='text-xs'>{lstMessagePerson} {chat.lastMessage?.text}</h1>
+                <h1 className='text-xs'>{lstMessagePerson} {chat?.lastMessage?.text}</h1>
                 <h1 className='text-xs'>{moment(chat?.lastMessage?.createdAt).format("hh:mm dd")}</h1>
             </div>);
         }
-    }
+    };
 
     const getUnreadMessages = (userObj) => {
-        const chat = allChats.find((chat) => chat.members.map((mem) => mem._id).includes(userObj._id));
-        if (chat && chat.unreadMessages && chat.lastMessage?.sender !== user._id) {
+        const chat = allChats.find((chat) =>
+            chat.members.map((mem) => mem._id).includes(userObj._id)
+        );
+        if (
+            chat &&
+            chat?.unreadMessages &&
+            chat?.lastMessage?.sender !== user._id
+        ) {
             return (
                 <div className='bg-green-700 text-white text-xs rounded-full m-1 h-5 w-5 flex items-center justify-center'>
                     {chat?.unreadMessages}
@@ -87,27 +98,36 @@ function UserList({ searchKey, socket }) {
 
     useEffect(() => {
         socket.on("receive-message", (message) => {
+            // if the chat area opened is not equal to chat in message , then increase unread messages by 1 and update last message
             const tempSelectedChat = store.getState().userReducer.selectedChat;
-            const tempAllChats = store.getState().userReducer.allChats;
-            if(tempSelectedChat?._id !== message.chat) {
+            let tempAllChats = store.getState().userReducer.allChats;
+            if (tempSelectedChat?._id !== message.chat) {
                 const updatedAllChats = tempAllChats.map((chat) => {
-                    if(chat._id === message.chat) {
+                    if (chat._id === message.chat) {
                         return {
                             ...chat,
-                            unreadMessages: (chat?.unreadMessages || 0) +1,
+                            unreadMessages: (chat?.unreadMessages || 0) + 1,
                             lastMessage: message,
                             updatedAt: message.createdAt,
                         };
                     }
                     return chat;
                 });
-                dispatch(SetAllChats(updatedAllChats));
+                tempAllChats = updatedAllChats;
             }
+
+            // always latest message chat will be on top
+            const latestChat = tempAllChats.find((chat) => chat._id === message.chat);
+            const otherChats = tempAllChats.filter(
+                (chat) => chat._id !== message.chat
+            );
+            tempAllChats = [latestChat, ...otherChats];
+            dispatch(SetAllChats(tempAllChats));
         });
-    }, [allChats]);
+    }, [dispatch]);
 
     return (
-        <div className='flex flex-col mt-5'>
+        <div className='flex flex-col mt-5 lg:w-80 xl:w-80 md:w-60 sm:w-60'>
             {getData().map((chatObjOrUserObj) => {
                 let userObj = chatObjOrUserObj;
                 if (chatObjOrUserObj.members) {
@@ -131,11 +151,14 @@ function UserList({ searchKey, socket }) {
                                 />
                             )}
                             {!userObj.profilePic && (
-                                <Icon.PersonCircle className='w-8 h-8 flex items-center justify-center'></Icon.PersonCircle>
+                                <Icon.PersonCircle className='h-12 w-12 flex items-center justify-center relative'></Icon.PersonCircle>
                             )}
                             <div className='flex flex-col gap-1 w-full'>
                                 <div className='flex gap-1'>
                                     <h1 className='text-sm m-1'>{userObj.name}</h1>
+                                    {onlineUsers.includes(userObj._id) &&
+                                        <div className="bg-green-600 h-3 w-3 rounded-full m-2">
+                                        </div>}
                                     {getUnreadMessages(userObj)}
                                 </div>
                                 <h1 className='text-xs'>{getLastMessage(userObj)}</h1>

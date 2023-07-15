@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, {useEffect, useState} from 'react'
 import { useNavigate } from 'react-router-dom';
 import { GetAllUsers, GetCurrentUser } from '../api-calls/users';
 import { GetAllChats, CreateNewChat } from '../api-calls/chats';
@@ -7,7 +7,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ShowLoader, HideLoader } from '../redux/loaderSlice';
 import { SetAllUsers, SetUser, SetAllChats } from '../redux/userSlice';
 import * as Icon from 'react-bootstrap-icons';
+import { io } from "socket.io-client";
 
+
+const socket = io("http://localhost:5000");
     function ProtectedRoute({children}) {
         const {user} = useSelector(state => state.userReducer);
         const dispatch = useDispatch();
@@ -60,6 +63,7 @@ import * as Icon from 'react-bootstrap-icons';
                         <button>
                             <Icon.BoxArrowRight size={50}
                                 onClick={() => {
+                                    socket.emit("go-offline", user._id);
                                     localStorage.removeItem("token");
                                     navigate("/login");
                                 }}

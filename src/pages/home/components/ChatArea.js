@@ -25,20 +25,25 @@ function ChatArea({socket}) {
       const message = {
         chat: selectedChat._id,
         sender: user._id,
-        text: newMessage,
+        text: newMessage
       };
+      // send message to server using socket
       socket.emit("send-new-message", {
         ...message,
-        members: selectedChat.members.map((member) => member._id),
+        members: selectedChat.members.map((mem) => mem._id),
         createdAt: moment(),
         read: false,
       });
 
+      // send message to server to save in db
       const response = await SendMessage(message);
+
       if (response.success) {
-        setNewMessage("")
+        setNewMessage("");
+
       }
     } catch (error) {
+      console.log(error);
       toast.error(error.message);
     }
   };
@@ -51,27 +56,26 @@ function ChatArea({socket}) {
       if (response.success) {
         setMessages(response.data);
       }
-    }
-    catch (error) {
+    } catch (error) {
       dispatch(HideLoader());
       toast.error(error.message);
     }
   };
 
-  const readAllMessages = async () => {
+  const clearUnreadMessages = async () => {
     try {
-
       socket.emit("read-all-messages", {
         chat: selectedChat._id,
-        members: selectedChat.members.map((member) => member._id),
+        members: selectedChat.members.map((mem) => mem._id),
       });
 
       const response = await ReadAllMessages(selectedChat._id);
-      if(response.success) {
+
+      if (response.success) {
         const updatedChats = allChats.map((chat) => {
-          if(chat._id === selectedChat._id) {
+          if (chat._id === selectedChat._id) {
             return response.data;
-          } 
+          }
           return chat;
         });
         dispatch(SetAllChats(updatedChats));
@@ -83,27 +87,33 @@ function ChatArea({socket}) {
 
   useEffect(() => {
     getMessages();
-    if(selectedChat?.lastMessage?.sender !== user._id) {
-      readAllMessages();
+    if (selectedChat?.lastMessage?.sender !== user._id) {
+      clearUnreadMessages();
     }
 
+    // receive message from server using socket
     socket.off("receive-message").on("receive-message", (message) => {
-      const selectedChatTemp = store.getState().userReducer.selectedChat;
-      if(selectedChatTemp._id === message.chat) {
+      const tempSelectedChat = store.getState().userReducer.selectedChat;
+      if (tempSelectedChat._id === message.chat) {
         setMessages((messages) => [...messages, message]);
       }
-      if(selectedChatTemp._id === message.chat && message.sender !== user._id) {
-        readAllMessages();
+
+      if (
+          tempSelectedChat._id === message.chat &&
+          message.sender !== user._id
+      ) {
+        clearUnreadMessages();
       }
     });
 
+    // clear unread messages from server using socket
     socket.on("unread-messages-cleared", (data) => {
       const tempAllChats = store.getState().userReducer.allChats;
       const tempSelectedChat = store.getState().userReducer.selectedChat;
 
-      if(data.chat === tempSelectedChat._id) {
+      if (data.chat === tempSelectedChat._id) {
         const updatedChats = tempAllChats.map((chat) => {
-          if(chat._id === data.chat) {
+          if (chat._id === data.chat) {
             return {
               ...chat,
               unreadMessages: 0,
@@ -113,17 +123,17 @@ function ChatArea({socket}) {
         });
         dispatch(SetAllChats(updatedChats));
 
-        setMessages(prevState => {
-          return prevState.map(message => {
+        // set all messages as read
+        setMessages((prevMessages) => {
+          return prevMessages.map((message) => {
             return {
               ...message,
-              read: true
+              read: true,
             };
           });
         });
       }
     });
-
   }, [selectedChat]);
 
   useEffect(() => {
