@@ -39,3 +39,27 @@ input:focus {
     border-radius: 4px;
     text-transform: uppercase;
 }
+
+#PlayButton {
+    border: 1px solid #047857;
+    background-color: #047857;
+    color: #fff
+}
+
+#PlayButton:disabled {
+    border: 1px solid #857e7e;
+    background-color: #fff;
+    color: #857e7e;
+}
+
+#AcceptGameButton {
+    border: 1px solid #047857;
+    background-color: #047857;
+    color: #fff
+}
+
+#CancelGameButton {
+    border: 1px solid #e10727;
+    background-color: #e10727;
+    color: #fff
+}

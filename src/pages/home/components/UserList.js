@@ -9,7 +9,7 @@ import moment from 'moment';
 import store from "../../../redux/store";
 
 function UserList({ searchKey, socket, onlineUsers }) {
-    const { allUsers, allChats, user, selectedChat } = useSelector((state) => state.userReducer);
+    const { allUsers, allChats, user, selectedChat} = useSelector((state) => state.userReducer);
     const dispatch = useDispatch();
     const createNewChat = async (receipentUserId) => {
         try {
@@ -124,7 +124,7 @@ function UserList({ searchKey, socket, onlineUsers }) {
             tempAllChats = [latestChat, ...otherChats];
             dispatch(SetAllChats(tempAllChats));
         });
-    }, [dispatch]);
+    }, []);
 
     return (
         <div className='flex flex-col mt-5 lg:w-80 xl:w-80 md:w-60 sm:w-60'>
