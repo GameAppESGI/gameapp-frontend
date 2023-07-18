@@ -52,7 +52,7 @@ const socket = io("http://localhost:5000");
     return (
         <div className='w-screen h-screen'>
             <div className='w-full'>
-                <div className='flex justify-between p-3 m-1 rounded-xl bg-gray-100 w-full'>
+                <div className='flex justify-between p-1 m-1 rounded-xl bg-gray-100 w-full'>
                     <div className='flex items-center gap-1'>
                         <Icon.Controller size={50}></Icon.Controller>
                         <h1 className='text-2xl uppercase font-semibold text-green-700'>GAMEAPP</h1>

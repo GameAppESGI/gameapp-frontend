@@ -116,7 +116,6 @@ function UserList({ searchKey, socket, onlineUsers }) {
                 tempAllChats = updatedAllChats;
             }
 
-            // always latest message chat will be on top
             const latestChat = tempAllChats.find((chat) => chat._id === message.chat);
             const otherChats = tempAllChats.filter(
                 (chat) => chat._id !== message.chat
@@ -124,7 +123,7 @@ function UserList({ searchKey, socket, onlineUsers }) {
             tempAllChats = [latestChat, ...otherChats];
             dispatch(SetAllChats(tempAllChats));
         });
-    }, []);
+    });
 
     return (
         <div className='flex flex-col mt-5 lg:w-80 xl:w-80 md:w-60 sm:w-60'>

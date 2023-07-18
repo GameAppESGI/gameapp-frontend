@@ -2,7 +2,7 @@ import React, {useEffect} from 'react'
 import {useDispatch, useSelector} from 'react-redux'
 import * as Icon from 'react-bootstrap-icons'
 import {SendMessage, GetMessages} from '../../../api-calls/messages';
-import { SetAllInvitations } from '../../../redux/userSlice';
+import {SetAllInvitations} from '../../../redux/userSlice';
 import {HideLoader, ShowLoader} from '../../../redux/loaderSlice';
 import {toast} from 'react-hot-toast';
 import moment from 'moment';
@@ -10,17 +10,19 @@ import {ReadAllMessages} from '../../../api-calls/chats';
 import {SetAllChats} from '../../../redux/userSlice';
 import store from "../../../redux/store";
 import {CancelGameInvitation, GetAllInvitations, SendGameInvitation} from "../../../api-calls/gameInvitations";
-import {StartGame} from "../../../api-calls/games";
+import {FindActiveGame, StartGame} from "../../../api-calls/games";
+import GameRender from "./GameRender";
 
 function ChatArea({socket}) {
     const dispatch = useDispatch();
     const [newMessage, setNewMessage] = React.useState("");
     const {selectedChat, user, allChats, allInvitations} = useSelector((state) => state.userReducer);
     const [messages = [], setMessages] = React.useState([]);
-    //const [setInvitations] = React.useState([]);
+    const [hideGameContainer, setGameContainer] = React.useState(false);
     const otherUser = selectedChat.members.find(
         (mem) => mem._id !== user._id
     );
+
 
     const getAllGameInvitations = async () => {
         try {
@@ -52,13 +54,12 @@ function ChatArea({socket}) {
             });
 
             const response = await SendGameInvitation(invitation);
-            if(response.success) {
+            if (response.success) {
                 const newInvitation = response.data;
                 const updatedInvitations = [...allInvitations, newInvitation];
                 dispatch(SetAllInvitations(updatedInvitations));
             }
-        }
-        catch (error) {
+        } catch (error) {
             toast.error(error.message);
         }
     }
@@ -68,28 +69,28 @@ function ChatArea({socket}) {
             toast.dismiss(toastId);
             const game = {
                 gameName: gameName,
+                chat: chatId,
             };
             const response = await StartGame(game);
-            if(response.success) {
-                if(allInvitations.length === 1) {
+            if (response.success) {
+                if (allInvitations.length === 1) {
                     dispatch(SetAllInvitations([]));
-                }
-                else {
+                } else {
                     const index = allInvitations.findIndex((invitation) => invitation.chat === chatId);
                     if (index > -1) {
                         const updatedInvitations = allInvitations.splice(index, 1);
                         dispatch(SetAllInvitations(updatedInvitations));
                     }
                 }
+                //setGameContainer(!hideGameContainer);
                 await CancelGameInvitation(chatId);
 
                 socket.emit("start-game", {
+                    ...game,
                     members: selectedChat.members.map((mem) => mem._id),
-                    message: "game started"
                 });
             }
-        }
-        catch (error) {
+        } catch (error) {
             toast.error(error.message);
         }
     }
@@ -98,11 +99,10 @@ function ChatArea({socket}) {
         try {
             toast.dismiss(toastId);
             const response = await CancelGameInvitation(chatId);
-            if(response.success) {
-                if(allInvitations.length === 1) {
+            if (response.success) {
+                if (allInvitations.length === 1) {
                     dispatch(SetAllInvitations([]));
-                }
-                else {
+                } else {
                     const index = allInvitations.findIndex((invitation) => invitation.chat === chatId);
                     if (index > -1) {
                         const updatedInvitations = allInvitations.splice(index, 1);
@@ -112,10 +112,10 @@ function ChatArea({socket}) {
 
                 socket.emit("cancel-invitation", {
                     members: selectedChat.members.map((mem) => mem._id),
-                    message: "canceled"});
+                    message: "canceled"
+                });
             }
-        }
-        catch (error) {
+        } catch (error) {
             toast.error(error.message);
         }
     }
@@ -147,6 +147,19 @@ function ChatArea({socket}) {
             toast.error(error.message);
         }
     };
+
+    const getActiveGame = async () => {
+        try {
+            const response = await FindActiveGame(selectedChat._id);
+            if(response.success && response.data.length > 0) {
+                return response.data;
+            }
+            return false;
+        }
+        catch (error) {
+            toast.error(error.message);
+        }
+    }
 
     const getMessages = async () => {
         try {
@@ -192,6 +205,19 @@ function ChatArea({socket}) {
             clearUnreadMessages();
         }
 
+        getActiveGame().then((activeGames) => {
+            if(!activeGames) {
+                console.log("no active games found");
+                setGameContainer(false);
+            }
+            else {
+                console.log("active games found");
+                setGameContainer(true);
+            }
+        });
+
+
+
         // receive message from server using socket
         socket.off("receive-message").on("receive-message", (message) => {
             const tempSelectedChat = store.getState().userReducer.selectedChat;
@@ -207,16 +233,22 @@ function ChatArea({socket}) {
             }
         });
 
+        socket.off("send-game-data-to-clients").on("send-game-data-to-clients", (data) => {
+            console.log(data);
+        });
 
 
         socket.off("game-invitation-sent").on("game-invitation-sent", (invitation) => {
-            if(invitation.receiver === user._id) {
+            let waitingToPlayToastId = "";
+            if (invitation.receiver === user._id) {
 
                 const invitationToastId = toast.loading(
                     <div>
                         <p>Wants to play with you. Click
-                            <button onClick={(e) => {startGame(invitationToastId, "morpion", invitation.chat)}}
-                                className="border-1 m-1 p-1 rounded" id="AcceptGameButton">
+                            <button onClick={(e) => {
+                                startGame(invitationToastId, "morpion", invitation.chat)
+                            }}
+                                    className="border-1 m-1 p-1 rounded" id="AcceptGameButton">
                                 here
                             </button> to play!
                         </p>
@@ -226,24 +258,25 @@ function ChatArea({socket}) {
                 socket.on("invitation-canceled", () => {
                     toast.dismiss(invitationToastId);
                 });
-            }
-            else {
-                const waitingToPlayToastId = toast.loading(
+            } else {
+                waitingToPlayToastId = toast.loading(
                     <div>
                         <p>Waiting to join. Click
-                            <button onClick={(e) => {cancelGameInvitation(waitingToPlayToastId, invitation.chat)}}
-                                className="border-1 rounded m-1 p-1" id="CancelGameButton">
+                            <button onClick={(e) => {
+                                cancelGameInvitation(waitingToPlayToastId, invitation.chat)
+                            }}
+                                    className="border-1 rounded m-1 p-1" id="CancelGameButton">
                                 here
                             </button> to cancel invitation!
                         </p>
                     </div>
                 );
-
-                socket.on("game-started", () => {
-                    toast.dismiss(waitingToPlayToastId);
-                });
             }
-
+            socket.on("game-started", (data) => {
+                toast.dismiss(waitingToPlayToastId);
+                setGameContainer(!hideGameContainer);
+                console.log("GAME ID = ", data);
+            });
         })
 
         // clear unread messages from server using socket
@@ -282,9 +315,9 @@ function ChatArea({socket}) {
     }, [messages]);
 
     return (
-        <div className='bg-white h-[85vh] border rounded w-full flex flex-col justify-between p-2'>
-            <div>
-                <div className='flex gap-2 items-center mb-2 justify-between'>
+        <div className='bg-white h-[95vh] border rounded w-full flex flex-col justify-between p-2'>
+            <div className="w-full">
+                <div className='flex gap-2 items-center mb-2 justify-between w-full'>
                     <div className="flex">
                         {otherUser.profilePic && (
                             <img
@@ -299,7 +332,7 @@ function ChatArea({socket}) {
                         <h1 className='text-sm m-1'>{otherUser.name}</h1>
                     </div>
                     <div>
-                        {!allInvitations.find((invitation) => (invitation.chat === selectedChat._id )) && (
+                        {!allInvitations.find((invitation) => (invitation.chat === selectedChat._id)) && (
                             <button onClick={sendGameInvitation} className="border-1 rounded p-1 m-1" id="PlayButton">
                                 Play
                             </button>
@@ -308,25 +341,30 @@ function ChatArea({socket}) {
                 </div>
                 <hr/>
             </div>
-            <div className='h-[65vh] overflow-y-scroll '
-                 id="messages">
-                <div className='flex flex-col gap-2'>
-                    {messages.map((message) => {
-                        const isCurrentUserTheSender = message.sender === user._id;
-                        return (<div className={`flex ${isCurrentUserTheSender && 'justify-end'}`}>
-                                <div className='flex flex-col'>
-                                    <h1 className={`${isCurrentUserTheSender ? "bg-green-800 text-white" : "bg-gray-300 text-green-800"
-                                    } p-2 rounded-xl text-sm`
-                                    }
-                                    >{message.text}</h1>
-                                    <h1 className='text-sm'>{moment(message.createdAt).format("dd hh:mm")}</h1>
+            <div className="flex h-[80vh] w-full">
+                <div className='overflow-y-scroll flex border-1 m-1 rounded-2xl p-1 w-full'
+                     id="messages">
+                    <div className='flex flex-col gap-1 w-full'>
+                        {messages.map((message) => {
+                            const isCurrentUserTheSender = message.sender === user._id;
+                            return (<div className={`flex ${isCurrentUserTheSender && 'justify-end'}`}>
+                                    <div className='flex flex-col'>
+                                        <h1 className={`${isCurrentUserTheSender ? "bg-green-800 text-white" : "bg-gray-300 text-green-800"
+                                        } p-2 rounded-xl text-sm`
+                                        }
+                                        >{message.text}</h1>
+                                        <h1 className='text-sm'>{moment(message.createdAt).format("dd hh:mm")}</h1>
+                                    </div>
+                                    {isCurrentUserTheSender && <Icon.CheckAll
+                                        className={`${message.read ? "text-green-700" : "text-gray-200"}`}></Icon.CheckAll>}
                                 </div>
-                                {isCurrentUserTheSender && <Icon.CheckAll
-                                    className={`${message.read ? "text-green-700" : "text-gray-200"}`}></Icon.CheckAll>}
-                            </div>
-                        );
-                    })}
+                            );
+                        })}
+                    </div>
                 </div>
+                {hideGameContainer && (<div className='border-1 m-1 rounded-2xl flex w-full' id="game">
+                    <GameRender socket = {socket}/>
+                </div>)}
             </div>
             <div>
                 <div className='h-10 rounded-2xl border flex justify-between text-xs'>

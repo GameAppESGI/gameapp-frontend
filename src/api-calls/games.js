@@ -9,3 +9,13 @@ export const StartGame = async (game) => {
         return error.response.data;
     }
 };
+
+export const FindActiveGame = async (chatId) => {
+    try {
+        const response = await axiosInstance.get(`/api/games/get-active-games/${chatId}`);
+        return response.data;
+    }
+    catch (error) {
+        return error.response.data;
+    }
+};
