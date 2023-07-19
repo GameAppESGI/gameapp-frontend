@@ -1,4 +1,4 @@
-import React, {useEffect} from "react";
+import React, {useEffect, useRef} from "react";
 import {useDispatch, useSelector} from "react-redux";
 
 function GameRender({socket}) {
@@ -7,31 +7,20 @@ function GameRender({socket}) {
     const {selectedChat, user, allChats, allInvitations} = useSelector((state) => state.userReducer);
     const [messages = [], setMessages] = React.useState([]);
     const [hideGameContainer, setGameContainer] = React.useState(false);
+    const [display, setDisplay] = React.useState({});
+    const socketRef = useRef();
     const otherUser = selectedChat.members.find(
         (mem) => mem._id !== user._id
     );
 
-    const showArea = (event) => {
-        var width = parseFloat(event.target.getAttributeNS(null,"cx"));
-
-        socket.emit("test-socket", {
-            message: "user" + user.name + "clicked on " + width,
-        });
-    }
-
-    const sendGameActionToServer = (event) => {
-        const actions = [{
-            x: event.target.getAttributeNS(null, "x"),
-            y: event.target.getAttributeNS(null, "y"),
-
-        }]
+    const sendGameActionToServer = () => {
         socket.emit("send-game-action-to-server", {
             action: {
                 actions: [
                     {
-                        x: 100,
+                        x: 200,
                         y: 100,
-                        player: 1
+                        player: 2
                     }
                 ]
             },
@@ -39,12 +28,22 @@ function GameRender({socket}) {
         });
     }
 
-    useEffect(() => {
+    const test = () => {
+        console.log("FROM TEST = " , display);
+    }
 
-    })
+    useEffect(() => {
+        socket.off("send-game-data-to-clients").on("send-game-data-to-clients", (data) => {
+            console.log(data);
+            setDisplay(data);
+            console.log("DIsplay = ", display );
+        });
+    }, [selectedChat]);
+
     return (
         <div>
             <p>Playing with {otherUser.name}</p>
+            {test()}
             <svg viewBox="0 0 100 100" id="mySVG">
 
                 <circle x="0" y="0" player="1" fill="blue" id="circle1" onClick={(e) => {sendGameActionToServer(e)}}/>

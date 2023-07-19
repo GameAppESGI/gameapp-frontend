@@ -220,6 +220,7 @@ function ChatArea({socket}) {
 
         // receive message from server using socket
         socket.off("receive-message").on("receive-message", (message) => {
+            console.log(message);
             const tempSelectedChat = store.getState().userReducer.selectedChat;
             if (tempSelectedChat._id === message.chat) {
                 setMessages((messages) => [...messages, message]);
@@ -232,11 +233,6 @@ function ChatArea({socket}) {
                 clearUnreadMessages();
             }
         });
-
-        socket.off("send-game-data-to-clients").on("send-game-data-to-clients", (data) => {
-            console.log(data);
-        });
-
 
         socket.off("game-invitation-sent").on("game-invitation-sent", (invitation) => {
             let waitingToPlayToastId = "";
@@ -332,11 +328,11 @@ function ChatArea({socket}) {
                         <h1 className='text-sm m-1'>{otherUser.name}</h1>
                     </div>
                     <div>
-                        {!allInvitations.find((invitation) => (invitation.chat === selectedChat._id)) && (
+
                             <button onClick={sendGameInvitation} className="border-1 rounded p-1 m-1" id="PlayButton">
                                 Play
                             </button>
-                        )}
+
                     </div>
                 </div>
                 <hr/>

@@ -6,6 +6,7 @@ import {useSelector} from 'react-redux';
 import {io} from "socket.io-client";
 
 const socket = io("localhost:5000");
+console.log("SOCKET = ", socket);
 localStorage.setItem("socket", socket)
 
 function Home() {
