@@ -18,9 +18,18 @@ export const GetAllInvitations = async (chatId) => {
     }
 }
 
-export const CancelGameInvitation = async (chatId) => {
+export const CancelGameInvitation = async (invitationId) => {
     try {
-        const response = await axiosInstance.post(`/api/game-invitations/cancel/${chatId}`);
+        const response = await axiosInstance.post(`/api/game-invitations/cancel/${invitationId}`);
+        return response.data;
+    } catch (error) {
+        return error.response.data;
+    }
+}
+
+export const AcceptGameInvitation = async (invitationId) => {
+    try {
+        const response = await axiosInstance.post(`/api/game-invitations/accept/${invitationId}`);
         return response.data;
     } catch (error) {
         return error.response.data;

@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react'
+import React, {useEffect, useRef} from 'react'
 import {useDispatch, useSelector} from 'react-redux'
 import * as Icon from 'react-bootstrap-icons'
 import {SendMessage, GetMessages} from '../../../api-calls/messages';
@@ -9,7 +9,12 @@ import moment from 'moment';
 import {ReadAllMessages} from '../../../api-calls/chats';
 import {SetAllChats} from '../../../redux/userSlice';
 import store from "../../../redux/store";
-import {CancelGameInvitation, GetAllInvitations, SendGameInvitation} from "../../../api-calls/gameInvitations";
+import {
+    AcceptGameInvitation,
+    CancelGameInvitation,
+    GetAllInvitations,
+    SendGameInvitation
+} from "../../../api-calls/gameInvitations";
 import {FindActiveGame, StartGame} from "../../../api-calls/games";
 import GameRender from "./GameRender";
 
@@ -19,6 +24,7 @@ function ChatArea({socket}) {
     const {selectedChat, user, allChats, allInvitations} = useSelector((state) => state.userReducer);
     const [messages = [], setMessages] = React.useState([]);
     const [hideGameContainer, setGameContainer] = React.useState(false);
+    const startGameBoolean = useRef(false);
     const otherUser = selectedChat.members.find(
         (mem) => mem._id !== user._id
     );
@@ -37,10 +43,14 @@ function ChatArea({socket}) {
             toast.error(error.message);
         }
     }
+    function generateInvitationId() {
+        return Math.random().toString(36).substr(2, 9);
+    }
 
     const sendGameInvitation = async () => {
         try {
             const invitation = {
+                _id: generateInvitationId(),
                 chat: selectedChat._id,
                 sender: user._id,
                 receiver: otherUser._id,
@@ -64,27 +74,15 @@ function ChatArea({socket}) {
         }
     }
 
-    const startGame = async (toastId, gameName, chatId) => {
+    const startGame = async (gameName, chatId) => {
         try {
-            toast.dismiss(toastId);
             const game = {
                 gameName: gameName,
                 chat: chatId,
             };
             const response = await StartGame(game);
             if (response.success) {
-                if (allInvitations.length === 1) {
-                    dispatch(SetAllInvitations([]));
-                } else {
-                    const index = allInvitations.findIndex((invitation) => invitation.chat === chatId);
-                    if (index > -1) {
-                        const updatedInvitations = allInvitations.splice(index, 1);
-                        dispatch(SetAllInvitations(updatedInvitations));
-                    }
-                }
-                //setGameContainer(!hideGameContainer);
-                await CancelGameInvitation(chatId);
-
+                setGameContainer(!hideGameContainer);
                 socket.emit("start-game", {
                     ...game,
                     members: selectedChat.members.map((mem) => mem._id),
@@ -95,25 +93,35 @@ function ChatArea({socket}) {
         }
     }
 
-    const cancelGameInvitation = async (toastId, chatId) => {
+    const acceptGameInvitation = async (currentUserToastId, otherUserToastId, invitation) => {
+        console.log("USER TO ACCE{T INVIT TOASTID  = ", otherUserToastId);
         try {
-            toast.dismiss(toastId);
-            const response = await CancelGameInvitation(chatId);
+            const response = await AcceptGameInvitation(invitation._id);
             if (response.success) {
-                if (allInvitations.length === 1) {
-                    dispatch(SetAllInvitations([]));
-                } else {
-                    const index = allInvitations.findIndex((invitation) => invitation.chat === chatId);
-                    if (index > -1) {
-                        const updatedInvitations = allInvitations.splice(index, 1);
-                        dispatch(SetAllInvitations(updatedInvitations));
-                    }
-                }
-
-                socket.emit("cancel-invitation", {
+                socket.emit("accept-invitation", {
+                    toastId: currentUserToastId,
                     members: selectedChat.members.map((mem) => mem._id),
-                    message: "canceled"
+                    chat: invitation.chat
                 });
+                toast.dismiss(otherUserToastId);
+            }
+
+        }
+        catch (error) {
+            toast.error(error.message);
+        }
+    }
+
+    const cancelGameInvitation = async (currentUserToastId, otherUserToastId, invitationId) => {
+        console.log("USER THAT SEND INVITATION TOASTID = ", currentUserToastId);
+        try {
+            const response = await CancelGameInvitation(invitationId);
+            if (response.success) {
+                socket.emit("cancel-invitation", {
+                    toastId: otherUserToastId,
+                    members: selectedChat.members.map((mem) => mem._id)
+                });
+                toast.dismiss(currentUserToastId);
             }
         } catch (error) {
             toast.error(error.message);
@@ -135,7 +143,6 @@ function ChatArea({socket}) {
                 read: false,
             });
 
-            // send message to server to save in db
             const response = await SendMessage(message);
 
             if (response.success) {
@@ -216,9 +223,6 @@ function ChatArea({socket}) {
             }
         });
 
-
-
-        // receive message from server using socket
         socket.off("receive-message").on("receive-message", (message) => {
             console.log(message);
             const tempSelectedChat = store.getState().userReducer.selectedChat;
@@ -234,33 +238,36 @@ function ChatArea({socket}) {
             }
         });
 
-        socket.off("game-invitation-sent").on("game-invitation-sent", (invitation) => {
-            let waitingToPlayToastId = "";
-            if (invitation.receiver === user._id) {
+        socket.off("game-invitation-accepted").on("game-invitation-accepted", (invitation) => {
+            toast.dismiss(invitation.toastId);
+            console.log("should start game");
+            startGame("morpion", invitation.chat);
+        })
 
-                const invitationToastId = toast.loading(
+        socket.off("invitation-canceled").on("invitation-canceled", (invitationId) => {
+            toast.dismiss(invitationId);
+            console.log("should cancel toast");
+        })
+
+        socket.off("game-invitation-sent").on("game-invitation-sent", (invitation) => {
+            let currentUserToastId = "";
+            let otherUserToastId = "";
+            if (invitation.receiver === user._id) {
+                otherUserToastId = toast.loading(
                     <div>
                         <p>Wants to play with you. Click
-                            <button onClick={(e) => {
-                                startGame(invitationToastId, "morpion", invitation.chat)
-                            }}
+                            <button onClick={() => {acceptGameInvitation(currentUserToastId,otherUserToastId,invitation)}}
                                     className="border-1 m-1 p-1 rounded" id="AcceptGameButton">
                                 here
                             </button> to play!
                         </p>
                     </div>
                 );
-
-                socket.on("invitation-canceled", () => {
-                    toast.dismiss(invitationToastId);
-                });
             } else {
-                waitingToPlayToastId = toast.loading(
+                currentUserToastId = toast.loading(
                     <div>
                         <p>Waiting to join. Click
-                            <button onClick={(e) => {
-                                cancelGameInvitation(waitingToPlayToastId, invitation.chat)
-                            }}
+                            <button onClick={() => {cancelGameInvitation(currentUserToastId, otherUserToastId, invitation._id)}}
                                     className="border-1 rounded m-1 p-1" id="CancelGameButton">
                                 here
                             </button> to cancel invitation!
@@ -268,14 +275,20 @@ function ChatArea({socket}) {
                     </div>
                 );
             }
-            socket.on("game-started", (data) => {
-                toast.dismiss(waitingToPlayToastId);
-                setGameContainer(!hideGameContainer);
-                console.log("GAME ID = ", data);
-            });
+            /*
+            console.log("START GAME ? = ", startGameBoolean);
+            if(startGameBoolean) {
+                socket.on("game-started", (data) => {
+                    startGame(otherUserToastId, "morpion", invitation.chat);
+                    toast.dismiss(waitingToPlayToastId);
+                    setGameContainer(!hideGameContainer);
+                    console.log("GAME ID = ", data);
+                });
+            }
+
+             */
         })
 
-        // clear unread messages from server using socket
         socket.on("unread-messages-cleared", (data) => {
             const tempAllChats = store.getState().userReducer.allChats;
             const tempSelectedChat = store.getState().userReducer.selectedChat;
@@ -292,7 +305,6 @@ function ChatArea({socket}) {
                 });
                 dispatch(SetAllChats(updatedChats));
 
-                // set all messages as read
                 setMessages((prevMessages) => {
                     return prevMessages.map((message) => {
                         return {
@@ -303,7 +315,7 @@ function ChatArea({socket}) {
                 });
             }
         });
-    }, [selectedChat]);
+    }, [selectedChat, startGameBoolean]);
 
     useEffect(() => {
         const messagesContainer = document.getElementById('messages');
