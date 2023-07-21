@@ -18,7 +18,6 @@ function Home() {
         if (user) {
             socket.emit("join-room", user._id);
             socket.emit("connected", user._id);
-
             socket.on("online-users", (users) => {
                 setOnlineUsers(users)
             });
