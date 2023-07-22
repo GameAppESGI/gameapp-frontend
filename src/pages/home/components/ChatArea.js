@@ -18,7 +18,7 @@ import {
 import {FindActiveGame, StartGame} from "../../../api-calls/games";
 import GameRender from "./GameRender";
 import {io} from "socket.io-client";
-
+const gameSocket = io("http://localhost:3000/game");
 function ChatArea({socket}) {
     const dispatch = useDispatch();
     const [newMessage, setNewMessage] = React.useState("");
@@ -29,7 +29,6 @@ function ChatArea({socket}) {
     const otherUser = selectedChat.members.find(
         (mem) => mem._id !== user._id
     );
-    const gameSocket = io("http://localhost:3000/game");
 
 
 
@@ -78,38 +77,27 @@ function ChatArea({socket}) {
         }
     }
 
-    const startGame = async (gameName, chatId) => {
-        try {
-            const game = {
-                _id: generateInvitationId(),
-                gameName: gameName,
-                chat: chatId,
-            };
-            const response = await StartGame(game);
-            if (response.success) {
-                setGameContainer(!hideGameContainer);
-                socket.emit("start-game", {
-                    ...game,
-                    members: selectedChat.members.map((mem) => mem._id),
-                });
-            }
-        } catch (error) {
-            toast.error(error.message);
-        }
-    }
-
     const acceptGameInvitation = async (currentUserToastId, otherUserToastId, invitation) => {
+        const game = {
+            _id: generateInvitationId(),
+            gameName: "morpion",
+            chat: invitation.chat,
+        };
         try {
             const response = await AcceptGameInvitation(invitation._id);
             if (response.success) {
                 socket.emit("accept-invitation", {
                     toastId: currentUserToastId,
-                    members: selectedChat.members.map((mem) => mem._id),
+                    otherUser: otherUser._id,
                     chat: invitation.chat
                 });
                 toast.dismiss(otherUserToastId);
+                const gameStarted = await StartGame(game);
+                if(gameStarted.success) {
+                    gameSocket.emit("test", invitation.chat, user.name);
+                }
+                setGameContainer(true);
             }
-
         } catch (error) {
             toast.error(error.message);
         }
@@ -239,7 +227,8 @@ function ChatArea({socket}) {
 
         socket.off("game-invitation-accepted").on("game-invitation-accepted", (invitation) => {
             toast.dismiss(invitation.toastId);
-            startGame("morpion", invitation.chat);
+            gameSocket.emit("test", selectedChat._id, user.name);
+            setGameContainer(true);
         })
 
         socket.off("invitation-canceled").on("invitation-canceled", (invitationId) => {
@@ -364,7 +353,7 @@ function ChatArea({socket}) {
                     </div>
                 </div>
                 {hideGameContainer && (<div className='border-1 m-1 rounded-2xl flex w-full' id="game">
-                    <GameRender socket={socket}/>
+                    <GameRender gameSocket={gameSocket}/>
                 </div>)}
             </div>
             <div>
