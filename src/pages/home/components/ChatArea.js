@@ -26,10 +26,10 @@ function ChatArea({socket}) {
     const [messages = [], setMessages] = React.useState([]);
     const [hideGameContainer, setGameContainer] = React.useState(false);
     const startGameBoolean = useRef(false);
+    const [players, setPlayers] = React.useState({player1: "", player2: ""});
     const otherUser = selectedChat.members.find(
         (mem) => mem._id !== user._id
     );
-
 
 
     const getAllGameInvitations = async () => {
@@ -61,10 +61,7 @@ function ChatArea({socket}) {
             };
 
 
-            socket.emit("send-game-invitation", {
-                ...invitation,
-                members: selectedChat.members.map((mem) => mem._id),
-            });
+            socket.emit("send-game-invitation", (invitation));
 
             const response = await SendGameInvitation(invitation);
             if (response.success) {
@@ -88,15 +85,17 @@ function ChatArea({socket}) {
             if (response.success) {
                 socket.emit("accept-invitation", {
                     toastId: currentUserToastId,
-                    otherUser: otherUser._id,
+                    sender: invitation.sender,
+                    receiver: invitation.receiver,
                     chat: invitation.chat
                 });
                 toast.dismiss(otherUserToastId);
                 const gameStarted = await StartGame(game);
                 if(gameStarted.success) {
-                    gameSocket.emit("test", invitation.chat, user.name);
+                    gameSocket.emit("join-game-room", invitation.chat, user.name, user._id);
                 }
                 setGameContainer(true);
+                setPlayers({player1: invitation.receiver, player2: invitation.sender});
             }
         } catch (error) {
             toast.error(error.message);
@@ -205,11 +204,9 @@ function ChatArea({socket}) {
                 setGameContainer(false);
             } else {
                 setGameContainer(true);
-                gameSocket.emit("join-game-room", {
-                    username: user.name,
-                    chatId: selectedChat._id});
             }
         });
+
 
         socket.off("receive-message").on("receive-message", (message) => {
             const tempSelectedChat = store.getState().userReducer.selectedChat;
@@ -226,8 +223,10 @@ function ChatArea({socket}) {
         });
 
         socket.off("game-invitation-accepted").on("game-invitation-accepted", (invitation) => {
+            setPlayers({player1: invitation.receiver, player2: invitation.sender});
+            console.log(`PLAYERS from chatroom = ${players.player1} AND ${players.player2}`)
             toast.dismiss(invitation.toastId);
-            gameSocket.emit("test", selectedChat._id, user.name);
+            gameSocket.emit("join-game-room", selectedChat._id, user.name);
             setGameContainer(true);
         })
 
@@ -353,7 +352,7 @@ function ChatArea({socket}) {
                     </div>
                 </div>
                 {hideGameContainer && (<div className='border-1 m-1 rounded-2xl flex w-full' id="game">
-                    <GameRender gameSocket={gameSocket}/>
+                    <GameRender gameSocket={gameSocket} players={players}/>
                 </div>)}
             </div>
             <div>

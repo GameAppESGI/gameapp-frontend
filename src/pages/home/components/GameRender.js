@@ -1,13 +1,13 @@
 import React, {useEffect, useRef} from "react";
 import {useSelector} from "react-redux";
-import {toast} from "react-hot-toast";
 
-function GameRender({gameSocket}) {
+function GameRender({gameSocket, players}) {
     const {selectedChat, user} = useSelector((state) => state.userReducer);
     const [gridDisplay, setGridDisplay] = React.useState({});
+    const [gridLimits, setGridLimits] = React.useState({width:0, height:0});
     const mousePos = useRef({x: 0, y: 0});
     const otherUser = selectedChat.members.find((mem) => mem._id !== user._id);
-
+    console.log(`PLAYERS from gamerender = ${players.player1} AND ${players.player2}`)
     const sendGameActionToServer = (event) => {
         const {currentTarget: svg, pageX, pageY} = event
         const coords = svg.getBoundingClientRect()
@@ -15,26 +15,32 @@ function GameRender({gameSocket}) {
             x: (Math.floor((pageX - coords.x) / 100)) * 100,
             y: (Math.floor((pageY - coords.y) / 100)) * 100,
         };
-        gameSocket.emit("update-game", {
-            actions: [
-                {
-                    x: mousePos.current.x,
-                    y: mousePos.current.y,
-                    player: 1
-                }
-            ]
-        }, otherUser._id);
-        gameSocket.emit("send-game-action-to-server", {
-            actions: [
-                {
-                    x: mousePos.current.x,
-                    y: mousePos.current.y,
-                    player: 1
-                }
-            ]
-        });
+        console.log(`Y = ${mousePos.current.y} && realY = ${pageY - coords.y}`)
+        if(players.player2 === user._id) {
+            console.log(`This is ${user.name} as player2`)
+            gameSocket.emit("update-game", {
+                actions: [
+                    {
+                        x: mousePos.current.x,
+                        y: mousePos.current.y,
+                        player: 2
+                    }
+                ]
+            }, players.player1);
+        }
+        if(players.player1 === user._id) {
+            console.log(`This is ${user.name} as player1`)
+            gameSocket.emit("send-game-action-to-server", {
+                actions: [
+                    {
+                        x: mousePos.current.x,
+                        y: mousePos.current.y,
+                        player: 1
+                    }
+                ]
+            });
+        }
 
-    console.log(`GAME ACTION SENT : X = ${mousePos.current.x} Y = ${mousePos.current.y}`);
 }
 
 const displayGameContent = () => {
@@ -57,30 +63,35 @@ const displayGameContent = () => {
             }
         }
     }
-    console.log(svgElements.length);
     return svgElements;
 }
 
 useEffect(() => {
-    gameSocket.on("send-game-update-to-other", (actionReceived) => {
-        console.log("FINAL ACTION TO SEND TO SERVER BY SECOND PLAYER = ", actionReceived);
-        gameSocket.emit("send-game-action-to-server", {
-            actions: [
-                {
-                    x: actionReceived.actions[0].x,
-                    y: actionReceived.actions[0].y,
-                    player: 2
-                }
-            ]
+    if(players.player1 === user._id) {
+        gameSocket.on("send-game-update-to-other", (actionReceived) => {
+            gameSocket.emit("send-game-action-to-server", {
+                actions: [
+                    {
+                        x: actionReceived.actions[0].x,
+                        y: actionReceived.actions[0].y,
+                        player: actionReceived.actions[0].player
+                    }
+                ]
+            });
         });
-    });
+    }
     gameSocket.off("send-game-data-to-clients").on("send-game-data-to-clients", (data) => {
-        if (!data.errors) {
-            console.log(data);
+        console.log("data received");
+        if (!data.errors && data.game_state.game_over === false) {
             setGridDisplay(data);
-        } else {
+            setGridLimits({width: data.displays[0].width, height: data.displays[0].height});
+        } else if(data.errors){
             console.log(data);
             //toast.error(data.errors[0].type);
+        }
+        else if (!data.errors && data.game_state.game_over === true) {
+            console.log("GAME OVER");
+            setGridDisplay(data);
         }
     });
 }, [selectedChat]);
@@ -91,7 +102,7 @@ return (
             <p>Playing with {otherUser.name}</p>
         </div>
         <div className="flex justify-center align-items-center" id="gameSVG">
-            <svg width="300" height="300" xmlns="http://www.w3.org/2000/svg" version="1.1"
+            <svg width={gridLimits.width} height={gridLimits.height} xmlns="http://www.w3.org/2000/svg" version="1.1"
                  onClick={(e) => {
                      sendGameActionToServer(e)
                  }}>
