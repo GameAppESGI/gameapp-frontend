@@ -18,6 +18,7 @@ import {
 import {FindActiveGame, StartGame} from "../../../api-calls/games";
 import GameRender from "./GameRender";
 import {io} from "socket.io-client";
+import {generateInvitationId, sendGameInvitation} from "../helperFunctions";
 const gameSocket = io("http://localhost:3000/game");
 function ChatArea({socket}) {
     const dispatch = useDispatch();
@@ -46,31 +47,12 @@ function ChatArea({socket}) {
         }
     }
 
-    function generateInvitationId() {
-        return Math.random().toString(36).substr(2, 9);
-    }
-
-    const sendGameInvitation = async () => {
-        try {
-            const invitation = {
-                _id: generateInvitationId(),
-                chat: selectedChat._id,
-                sender: user._id,
-                receiver: otherUser._id,
-                game: "morpion"
-            };
-
-
-            socket.emit("send-game-invitation", (invitation));
-
-            const response = await SendGameInvitation(invitation);
-            if (response.success) {
-                const newInvitation = response.data;
-                const updatedInvitations = [...allInvitations, newInvitation];
-                dispatch(SetAllInvitations(updatedInvitations));
-            }
-        } catch (error) {
-            toast.error(error.message);
+    const sendNewGameInvitation = async () => {
+        const newInvitationResponse = await sendGameInvitation(user, selectedChat, otherUser, socket);
+        if (newInvitationResponse.success) {
+            const newInvitation = newInvitationResponse.data;
+            const updatedInvitations = [...allInvitations, newInvitation];
+            dispatch(SetAllInvitations(updatedInvitations));
         }
     }
 
@@ -319,12 +301,11 @@ function ChatArea({socket}) {
                     </div>
                     <div>
                         {!hideGameContainer && (
-                            <button onClick={sendGameInvitation} className="border-1 rounded p-1 m-1" id="PlayButton">
+                            <button onClick={sendNewGameInvitation} className="border-1 rounded p-1 m-1" id="PlayButton">
                                 Play
                             </button>)}
                         {hideGameContainer && (<div>
-                            <button className="border-1 rounded p-1 m-1" id="ExitButton">Exit</button>
-                            <button className="border-1 rounded p-1 m-1" id="SaveButton">Save</button>
+                            <button className="border-1 rounded p-1 m-1" id="SaveButton">Save game</button>
                         </div>)}
                     </div>
                 </div>
@@ -352,7 +333,7 @@ function ChatArea({socket}) {
                     </div>
                 </div>
                 {hideGameContainer && (<div className='border-1 m-1 rounded-2xl flex w-full' id="game">
-                    <GameRender gameSocket={gameSocket} players={players}/>
+                    <GameRender socket={socket} gameSocket={gameSocket} players={players}/>
                 </div>)}
             </div>
             <div>

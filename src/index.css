@@ -64,6 +64,18 @@ input:focus {
     color: #fff
 }
 
+#RematchButton{
+    border: 1px solid #047857;
+    background-color: #047857;
+    color: #fff
+}
+
+#RematchButton:disabled {
+    border: 1px solid #857e7e;
+    background-color: #fff;
+    color: #857e7e;
+}
+
 
 #CancelGameButton {
     border: 1px solid #e10727;
