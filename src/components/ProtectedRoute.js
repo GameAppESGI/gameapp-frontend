@@ -23,6 +23,7 @@ const socket = io("http://localhost:5000");
                 const allChatsResponse = await GetAllChats();
                 dispatch(HideLoader());
                 if(response.success) {
+                    allUsersResponse.data.sort(function(a,b) {return b.points - a.points});
                     dispatch(SetUser(response.data));
                     dispatch(SetAllUsers(allUsersResponse.data));
                     dispatch(SetAllChats(allChatsResponse.data));

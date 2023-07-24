@@ -28,6 +28,7 @@ function ChatArea({socket}) {
     const [hideGameContainer, setGameContainer] = React.useState(false);
     const startGameBoolean = useRef(false);
     const [players, setPlayers] = React.useState({player1: "", player2: ""});
+    const [gameActive, setGameActive] = React.useState({});
     const otherUser = selectedChat.members.find(
         (mem) => mem._id !== user._id
     );
@@ -181,9 +182,10 @@ function ChatArea({socket}) {
             clearUnreadMessages();
         }
 
-        getActiveGame().then((activeGames) => {
-            if (!activeGames) {
+        getActiveGame().then((activeGame) => {
+            if (!activeGame) {
                 setGameContainer(false);
+                setGameActive(activeGame);
             } else {
                 setGameContainer(true);
             }
@@ -222,7 +224,7 @@ function ChatArea({socket}) {
             if (invitation.receiver === user._id) {
                 otherUserToastId = toast.loading(
                     <div>
-                        <p>Wants to play with you. Click
+                        <p>{otherUser.name} wants to play with you. Click
                             <button onClick={() => {
                                 acceptGameInvitation(currentUserToastId, otherUserToastId, invitation)
                             }}
@@ -235,7 +237,7 @@ function ChatArea({socket}) {
             } else {
                 currentUserToastId = toast.loading(
                     <div>
-                        <p>Waiting to join. Click
+                        <p>Waiting {otherUser.name} to join. Click
                             <button onClick={() => {
                                 cancelGameInvitation(currentUserToastId, otherUserToastId, invitation._id)
                             }}
@@ -304,9 +306,6 @@ function ChatArea({socket}) {
                             <button onClick={sendNewGameInvitation} className="border-1 rounded p-1 m-1" id="PlayButton">
                                 Play
                             </button>)}
-                        {hideGameContainer && (<div>
-                            <button className="border-1 rounded p-1 m-1" id="SaveButton">Save game</button>
-                        </div>)}
                     </div>
                 </div>
                 <hr/>
@@ -333,7 +332,7 @@ function ChatArea({socket}) {
                     </div>
                 </div>
                 {hideGameContainer && (<div className='border-1 m-1 rounded-2xl flex w-full' id="game">
-                    <GameRender socket={socket} gameSocket={gameSocket} players={players}/>
+                    <GameRender socket={socket} gameSocket={gameSocket} players={players} gameActive={gameActive}/>
                 </div>)}
             </div>
             <div>

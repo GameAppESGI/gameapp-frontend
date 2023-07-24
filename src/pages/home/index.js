@@ -4,6 +4,7 @@ import ChatArea from './components/ChatArea'
 import UserList from './components/UserList';
 import {useSelector} from 'react-redux';
 import {io} from "socket.io-client";
+import 'react-pro-sidebar/dist/css/styles.css';
 
 const socket = io("localhost:5000");
 console.log("SOCKET = ", socket);
@@ -47,8 +48,8 @@ function Home() {
                 </div>
             )}
             {!selectedChat && (
-                <div className="w-full h-[80vh] items-center flex justify-center bg-white">
-                    <p>// TO DO</p>
+                <div className="w-full h-[80vh] items-center flex justify-center bg-white rounded-xl" id="homePageBackground">
+
                 </div>
             )}
         </div>

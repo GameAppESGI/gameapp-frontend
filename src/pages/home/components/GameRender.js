@@ -1,9 +1,10 @@
 import React, {useEffect, useRef} from "react";
 import {useDispatch, useSelector} from "react-redux";
-import {EndGame} from "../../../api-calls/games";
+import {EndGame, SaveGameAction} from "../../../api-calls/games";
 import {toast} from "react-hot-toast";
 import {sendGameInvitation} from "../helperFunctions";
 import {SetAllInvitations} from "../../../redux/userSlice";
+import {UpdateWinner} from "../../../api-calls/users";
 
 function GameRender({socket, gameSocket, players}) {
     const {selectedChat, user, allInvitations} = useSelector((state) => state.userReducer);
@@ -13,7 +14,9 @@ function GameRender({socket, gameSocket, players}) {
     const [gameOver, setGameOver] = React.useState(false);
     const [rematchGame, setRematch] = React.useState(false);
     const [rematchDisabled, setRematchDisabled] = React.useState(false);
+    const [winner, setWinner] = React.useState(false);
     const dispatch = useDispatch();
+    let verifySocket = 0;
     const otherUser = selectedChat.members.find(
         (mem) => mem._id !== user._id
     );
@@ -40,15 +43,17 @@ function GameRender({socket, gameSocket, players}) {
         }
         if (players.player1 === user._id) {
             console.log(`This is ${user.name} as player1`)
-            gameSocket.emit("send-game-action-to-server", {
-                actions: [
+            const action = {
+                actions : [
                     {
                         x: mousePos.current.x,
                         y: mousePos.current.y,
                         player: 1
                     }
                 ]
-            });
+            };
+            saveGameAction(action);
+            gameSocket.emit("send-game-action-to-server", (action));
         }
 
     }
@@ -92,11 +97,22 @@ function GameRender({socket, gameSocket, players}) {
         sendRematchInvitation();
     }
 
+    const saveGameAction = async (action) => {
+        try {
+            await SaveGameAction(selectedChat._id, action);
+        } catch (error) {
+            toast.error(error);
+        }
+    }
+
+
 
     useEffect(() => {
+
         if (players.player1 === user._id) {
             gameSocket.on("send-game-update-to-other", (actionReceived) => {
                 console.log("action received from other");
+                saveGameAction(actionReceived);
                 gameSocket.emit("send-game-action-to-server", {
                     actions: [
                         {
@@ -109,7 +125,8 @@ function GameRender({socket, gameSocket, players}) {
             });
         }
         gameSocket.off("send-game-data-to-clients").on("send-game-data-to-clients", async (data) => {
-            console.log("data received");
+
+            console.log("data received", data);
             if (!data.errors && data.game_state.game_over === false) {
                 setGridDisplay(data);
                 setGridLimits({width: data.displays[0].width, height: data.displays[0].height});
@@ -120,9 +137,15 @@ function GameRender({socket, gameSocket, players}) {
                 setGridDisplay(data);
                 setGameOver(true);
                 setRematchDisabled(false);
+                if((data.game_state.scores[0] === 1) && (user._id === players.player1)) {
+                    setWinner(true);
+                    verifySocket++;
+                    if(verifySocket === 1) {
+                        await UpdateWinner(user._id);
+                    }
+                }
                 console.log("GAME OVER");
                 console.log(data);
-                gameSocket.emit("end-game");
                 try {
                     await EndGame(selectedChat._id);
                 } catch (error) {
@@ -135,15 +158,18 @@ function GameRender({socket, gameSocket, players}) {
             if (userId !== user._id) {
                 console.log(`user ${user._id} received rematch request`)
                 setRematch(true);
+                setWinner(false);
             }
         })
     }, [selectedChat, user, players, rematchGame]);
 
     return (
-        <div id="GameRender" className="flex">
-            <div className="flex flex-col justify-center align-items-center" id="gameSVG">
-                {(gameOver && !rematchGame) && <div className="flex flex-col justify-center align-items-center p-5 ">
+        <div id="GameRender" className="flex w-[100vh]">
+            <div className="flex flex-col justify-center align-items-center w-[100vh]" id="gameSVG">
+                {(gameOver && !rematchGame) && <div className="flex flex-col justify-center align-items-center p-5 w-[100vh]">
                     <p>GAME OVER</p>
+                    {winner && (<p>YOU WON</p>)}
+                    {!winner && (<p>YOU LOST</p>)}
                     <div className="flex">
                         <button disabled={rematchDisabled} onClick={rematch} className="border-1 rounded p-1 m-1"
                                 id="RematchButton">Rematch

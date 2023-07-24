@@ -39,3 +39,11 @@ export const GetAllUsers = async () => {
     }
 }
 
+export const UpdateWinner = async (userId) => {
+    try {
+        const response = await axiosInstance.post(`/api/users/update-points/${userId}`);
+        return response.data;
+    } catch (error) {
+        return error.response.data;
+    }
+}

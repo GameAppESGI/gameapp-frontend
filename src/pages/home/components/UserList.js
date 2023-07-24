@@ -11,6 +11,7 @@ import store from "../../../redux/store";
 function UserList({ searchKey, socket, onlineUsers }) {
     const { allUsers, allChats, user, selectedChat} = useSelector((state) => state.userReducer);
     const dispatch = useDispatch();
+    const [ranking, setRanking] = React.useState(false);
     const createNewChat = async (receipentUserId) => {
         try {
             dispatch(ShowLoader());
@@ -127,52 +128,87 @@ function UserList({ searchKey, socket, onlineUsers }) {
 
     return (
         <div className='flex flex-col mt-5 lg:w-80 xl:w-80 md:w-60 sm:w-60'>
-            {getData().map((chatObjOrUserObj) => {
-                let userObj = chatObjOrUserObj;
-                if (chatObjOrUserObj.members) {
-                    userObj = chatObjOrUserObj.members.find(
-                        (mem) => mem._id !== user._id
-                    );
-                }
-                return (
-                    <div className={`shadow border p-1 rounded-xl m-1 bg-white flex justify-between w-full
+            <div className="flex p-1 justify-center">
+                <button onClick={() => setRanking(false)}><Icon.Chat className="m-2"></Icon.Chat></button>
+                <button onClick={() => setRanking(true)}><Icon.Trophy className="m-2"></Icon.Trophy></button>
+            </div>
+            {!ranking && (<div>
+                {getData().map((chatObjOrUserObj) => {
+                    let userObj = chatObjOrUserObj;
+                    if (chatObjOrUserObj.members) {
+                        userObj = chatObjOrUserObj.members.find(
+                            (mem) => mem._id !== user._id
+                        );
+                    }
+                    return (
+                        <div className={`shadow border p-1 rounded-xl m-1 bg-white flex justify-between w-full
                             ${getIsSelectedChatOrNot(userObj) && "border-primary border-2"}
                         `}
-                        key={userObj._id}
-                        onClick={() => openChat(userObj._id)}
-                    >
+                             key={userObj._id}
+                             onClick={() => openChat(userObj._id)}
+                        >
+                            <div className='flex gap-2 items-center w-full'>
+                                {userObj.profilePic && (
+                                    <img
+                                        src={userObj.profilePic}
+                                        alt="profile photo"
+                                        className='w-10 h-10 rounded-full flex items-center justify-center'
+                                    />
+                                )}
+                                {!userObj.profilePic && (
+                                    <Icon.PersonCircle className='h-12 w-12 flex items-center justify-center relative'></Icon.PersonCircle>
+                                )}
+                                <div className='flex flex-col gap-1 w-full'>
+                                    <div className='flex gap-1'>
+                                        <h1 className='text-sm m-1'>{userObj.name}</h1>
+                                        {onlineUsers.includes(userObj._id) &&
+                                            <div className="bg-green-600 h-3 w-3 rounded-full m-2">
+                                            </div>}
+                                        {getUnreadMessages(userObj)}
+                                    </div>
+                                    <h1 className='text-xs'>{getLastMessage(userObj)}</h1>
+                                </div>
+                            </div>
+                            <div onClick={() => createNewChat(userObj._id)}>
+                                {!allChats.find((chat) => chat.members.map((member) => member._id).includes(userObj._id)) && (
+                                    <button className='border-green-900 text-green-900 bg-white px-1 py-1 rounded-md border m-1 text-xl'>
+                                        Connect
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>)}
+            {ranking && (<div>
+                {allUsers.map((user) => {
+                    return (<div className="shadow border p-1 rounded-xl m-1 bg-white flex justify-between w-full">
                         <div className='flex gap-2 items-center w-full'>
-                            {userObj.profilePic && (
+                            {user.profilePic && (
                                 <img
-                                    src={userObj.profilePic}
+                                    src={user.profilePic}
                                     alt="profile photo"
                                     className='w-10 h-10 rounded-full flex items-center justify-center'
                                 />
                             )}
-                            {!userObj.profilePic && (
+                            {!user.profilePic && (
                                 <Icon.PersonCircle className='h-12 w-12 flex items-center justify-center relative'></Icon.PersonCircle>
                             )}
                             <div className='flex flex-col gap-1 w-full'>
                                 <div className='flex gap-1'>
-                                    <h1 className='text-sm m-1'>{userObj.name}</h1>
-                                    {onlineUsers.includes(userObj._id) &&
+                                    <h1 className='text-sm m-1'>{user.name}</h1>
+                                    {onlineUsers.includes(user._id) &&
                                         <div className="bg-green-600 h-3 w-3 rounded-full m-2">
                                         </div>}
-                                    {getUnreadMessages(userObj)}
                                 </div>
-                                <h1 className='text-xs'>{getLastMessage(userObj)}</h1>
                             </div>
                         </div>
-                        <div onClick={() => createNewChat(userObj._id)}>
-                            {!allChats.find((chat) => chat.members.map((member) => member._id).includes(userObj._id)) && (
-                                <button className='border-green-900 text-green-900 bg-white px-1 py-1 rounded-md border m-1 text-xl'>
-                                    Connect
-                                </button>
-                            )}
+                        <div className="flex justify-center text-sm m-1">
+                            {user.points}
                         </div>
-                    </div>
-                );
-            })}
+                    </div>)
+                })}
+            </div>)}
         </div>
     );
 }
