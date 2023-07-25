@@ -40,8 +40,8 @@ function Login() {
   }, []);
 
   return (
-    <div className='h-screen bg-green-900 flex items-center justify-center'>
-      <div className='bg-white shadow-md p-3 rounded-xl flex flex-col gap-4 w-96'>
+    <div className='h-screen flex items-center justify-center' id="login">
+      <div className='bg-white shadow-md p-3 rounded-xl flex flex-col gap-4 w-96' id="loginCard">
         <h1 className='text-3xl font-bold uppercase'>GameApp Login</h1>
         <hr />
         <input type="email"

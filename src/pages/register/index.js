@@ -40,7 +40,7 @@ function Register() {
   }, []);
   
   return (
-    <div className='h-screen bg-green-900 flex items-center justify-center'>
+    <div className='h-screen flex items-center justify-center' id="register">
       <div className='bg-white shadow-md p-3 rounded-xl flex flex-col gap-4 w-96'>
         <h1 className='text-3xl font-bold uppercase'>GameApp Register</h1>
         <hr />

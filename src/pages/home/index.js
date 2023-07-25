@@ -4,7 +4,9 @@ import ChatArea from './components/ChatArea'
 import UserList from './components/UserList';
 import {useSelector} from 'react-redux';
 import {io} from "socket.io-client";
-import 'react-pro-sidebar/dist/css/styles.css';
+import Sidebar from "./components/Sidebar";
+import {FriendsArea} from "./FriendsArea";
+import {HomePageArea} from "./components/HomePageArea";
 
 const socket = io("localhost:5000");
 console.log("SOCKET = ", socket);
@@ -28,30 +30,20 @@ function Home() {
 
 
     return (
-        <div className='flex gap-2 w-full'>
-
-            <div className='w-[37vh]'>
-                <SearchUser
-                    searchKey={searchKey}
-                    setSearchKey={setSearchKey}
-                />
-                <UserList
-                    searchKey={searchKey}
-                    socket={socket}
-                    onlineUsers={onlineUsers}
-                />
-            </div>
-
+        <div className='gap-2 h-full w-full flex' id="body">
+            <Sidebar/>
             {selectedChat && (
-                <div className="w-full">
-                    <ChatArea socket={socket}/>
-                </div>
+                <ChatArea socket={socket}/>
             )}
             {!selectedChat && (
-                <div className="w-full h-[80vh] items-center flex justify-center bg-white rounded-xl" id="homePageBackground">
-
-                </div>
+                <HomePageArea />
             )}
+            <FriendsArea
+                searchKey={searchKey}
+                setSearchKey={setSearchKey}
+                socket={socket}
+                onlineUsers={onlineUsers}
+            />
         </div>
     );
 }

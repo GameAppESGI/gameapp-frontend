@@ -13,7 +13,7 @@ html {
 
 input {
     height: 40px;
-    border: 1px solid #3eda55;
+    border: 1px solid white;
     padding-left: 20px;
 }
 
@@ -32,7 +32,7 @@ input:focus {
 }
 
 .contained-btn {
-    background-color: #047857;
+    background-color: #2F4050;
     color: white;
     padding: 5px 20px;
     height: 40px;
@@ -88,3 +88,175 @@ input:focus {
     background-color: #e10727;
     color: #fff
 }
+#header {
+    padding-left: 25px;
+    padding-right: 10px;
+    display: flex;
+    background-color: #2F4050;
+}
+
+#header #test #logo {
+    width: 50px;
+    height: 70px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    margin-left: 8px;
+}
+#sidebarButton:hover {
+    background-color: #293846;
+}
+
+#searchUserBar {
+    background-color: #2F4050;
+    font-size: 15px;
+    margin-top:30px;
+}
+
+#friendsArea {
+    height: 100%;
+    width: 13%;
+    background-color: #2F4050;
+    padding-right: 10px;
+    padding-left: 10px;
+}
+
+#friendsArea #friends {
+    margin-top: 30px;
+}
+
+#body {
+    margin: 5px;
+    width:100%;
+}
+
+#chatArea {
+    width: 70%;
+}
+#homePageArea {
+    width: 70%;
+    background:url("./pages/home/components/background.jpg");
+    background-size: cover;
+    background-position: center ;
+}
+
+#header {
+    margin-left: 5px;
+    margin-right: 10px;
+}
+
+.Sidebar {
+    height: 100%;
+    width: 16%;
+    background-color: #2F4050;
+}
+
+#Profile {
+    height: 100%;
+    width: 100%;
+    background-color: #2F4050;
+}
+
+.ProfileList {
+    margin-top: 10%;
+    height: auto;
+    padding: 0;
+    width:40%;
+}
+
+#login {
+    background-color: #293846;
+}
+
+#register {
+    background-color: #293846;
+}
+
+#login #loginCard #logo {
+    width: 80px;
+    height: 100px;
+    margin-left: 100px;
+    background:url("./pages/home/logo.jpg");
+    background-size: cover;
+    background-position: center ;
+}
+
+.ProfileList .row {
+    width: 100%;
+    height: 60px;
+    list-style-type: none;
+    margin: 0;
+    display: flex;
+    flex-direction: row;
+    color: white;
+    justify-content: center;
+    align-items: center;
+}
+.ProfileList .row:hover {
+    cursor: pointer;
+    background-color: #293846;
+}
+
+.SidebarList {
+    margin-top: 10%;
+    height: auto;
+    padding: 0;
+    width:100%;
+}
+
+.SidebarList .row {
+    width: 100%;
+    height: 60px;
+    list-style-type: none;
+    margin: 0;
+    display: flex;
+    flex-direction: row;
+    color: white;
+    justify-content: center;
+    align-items: center;
+}
+.SidebarList .row:hover {
+    cursor: pointer;
+    background-color: #293846;
+}
+
+.SidebarList .friendRow {
+    width: 100%;
+    height: 60px;
+    list-style-type: none;
+    margin: 1px;
+    display: flex;
+    flex-direction: row;
+    color: white;
+    justify-content: center;
+    align-items: center;
+}
+.SidebarList .friendRow:hover {
+    cursor: pointer;
+    background-color: #293846;
+}
+
+.friendRow {
+    flex: 30%;
+    place-items: center;
+    display: grid;
+}
+
+.row #icon {
+    flex: 30%;
+    place-items: center;
+    display: grid;
+}
+
+.row #title {
+    flex: 70%
+ }
+
+#footer {
+    width: 100%;
+    height: 16%;
+    background-color: #2F4050;
+}
+
+

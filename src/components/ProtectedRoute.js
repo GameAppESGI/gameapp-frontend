@@ -8,6 +8,8 @@ import { ShowLoader, HideLoader } from '../redux/loaderSlice';
 import { SetAllUsers, SetUser, SetAllChats } from '../redux/userSlice';
 import * as Icon from 'react-bootstrap-icons';
 import { io } from "socket.io-client";
+import {HeaderComponent} from "../pages/home/HeaderComponent";
+import {FooterComponent} from "../pages/home/components/FooterComponent";
 
 
 const socket = io("http://localhost:5000");
@@ -51,31 +53,11 @@ const socket = io("http://localhost:5000");
         }, []);
 
     return (
-        <div className='w-screen h-screen'>
-            <div className='w-full'>
-                <div className='flex justify-between p-1 m-1 rounded-xl bg-gray-100 w-full'>
-                    <div className='flex items-center gap-1'>
-                        <Icon.Controller size={50}></Icon.Controller>
-                        <h1 className='text-2xl uppercase font-semibold text-green-700'>GAMEAPP</h1>
-                    </div>
-                    <div className='flex items-center gap-2'>
-                        <h1 className='text-green-700 text-2xl'>{user?.name}</h1>
-                        <Icon.PersonCircle size={50}></Icon.PersonCircle>
-                        <button>
-                            <Icon.BoxArrowRight size={50}
-                                onClick={() => {
-                                    socket.emit("go-offline", user._id);
-                                    localStorage.removeItem("token");
-                                    navigate("/login");
-                                }}
-                            ></Icon.BoxArrowRight>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div className='flex justify-between p-3 m-1 bg-gray-100 rounded-xl w-full h-full' >
-                {children}
-            </div>
+        <div className='w-full h-full bg-gray-800'>
+            <HeaderComponent socket={socket}
+            user={user}/>
+            {children}
+            <FooterComponent />
         </div>
 
     );

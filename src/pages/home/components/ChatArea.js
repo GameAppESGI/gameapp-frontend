@@ -9,6 +9,7 @@ import moment from 'moment';
 import {ReadAllMessages} from '../../../api-calls/chats';
 import {SetAllChats} from '../../../redux/userSlice';
 import store from "../../../redux/store";
+import EmojiPicker from 'emoji-picker-react';
 import {
     AcceptGameInvitation,
     CancelGameInvitation,
@@ -19,7 +20,9 @@ import {FindActiveGame, StartGame} from "../../../api-calls/games";
 import GameRender from "./GameRender";
 import {io} from "socket.io-client";
 import {generateInvitationId, sendGameInvitation} from "../helperFunctions";
+
 const gameSocket = io("http://localhost:3000/game");
+
 function ChatArea({socket}) {
     const dispatch = useDispatch();
     const [newMessage, setNewMessage] = React.useState("");
@@ -28,6 +31,7 @@ function ChatArea({socket}) {
     const [hideGameContainer, setGameContainer] = React.useState(false);
     const startGameBoolean = useRef(false);
     const [players, setPlayers] = React.useState({player1: "", player2: ""});
+    const [showEmojiPicker, setShowEmojiPicker] = React.useState(false);
     const [gameActive, setGameActive] = React.useState({});
     const otherUser = selectedChat.members.find(
         (mem) => mem._id !== user._id
@@ -74,7 +78,7 @@ function ChatArea({socket}) {
                 });
                 toast.dismiss(otherUserToastId);
                 const gameStarted = await StartGame(game);
-                if(gameStarted.success) {
+                if (gameStarted.success) {
                     gameSocket.emit("join-game-room", invitation.chat, user.name, user._id);
                 }
                 setGameContainer(true);
@@ -285,7 +289,7 @@ function ChatArea({socket}) {
     }, [messages]);
 
     return (
-        <div className='bg-white h-[95vh] border rounded w-full flex flex-col justify-between p-2'>
+        <div className='bg-white h-[95vh] border rounded flex flex-col justify-between p-2' id="chatArea">
             <div className="w-full">
                 <div className='flex gap-2 items-center mb-2 justify-between w-full'>
                     <div className="flex">
@@ -303,7 +307,8 @@ function ChatArea({socket}) {
                     </div>
                     <div>
                         {!hideGameContainer && (
-                            <button onClick={sendNewGameInvitation} className="border-1 rounded p-1 m-1" id="PlayButton">
+                            <button onClick={sendNewGameInvitation} className="border-1 rounded p-1 m-1"
+                                    id="PlayButton">
                                 Play
                             </button>)}
                     </div>
@@ -335,14 +340,19 @@ function ChatArea({socket}) {
                     <GameRender socket={socket} gameSocket={gameSocket} players={players} gameActive={gameActive}/>
                 </div>)}
             </div>
-            <div>
-                <div className='h-10 rounded-2xl border flex justify-between text-xs'>
-                    <input type="text" placeholder='write something...'
-                           className='w-[100%] border-0 h-full rounded-2xl focus:border-none'
-                           value={newMessage}
-                           onChange={(e) => setNewMessage(e.target.value)}/>
-                    <button onClick={sendNewMessage}><Icon.Send className='mr-3'></Icon.Send></button>
-                </div>
+            <div className='h-10 rounded-2xl border flex justify-between text-xs relative'>
+                {showEmojiPicker && <div className="absolute bottom-0 left-0">
+                    <EmojiPicker height={350} onEmojiClick={(e) => {
+                        setNewMessage(newMessage + e.emoji);
+                        setShowEmojiPicker(false);
+                    }}/>
+                </div>}
+                <Icon.EmojiSunglasses onClick={() => setShowEmojiPicker(!showEmojiPicker)}/>
+                <input type="text" placeholder='write something...'
+                       className='w-[100%] border-0 h-full rounded-2xl focus:border-none'
+                       value={newMessage}
+                       onChange={(e) => setNewMessage(e.target.value)}/>
+                <button onClick={sendNewMessage}><Icon.Send className='mr-3'></Icon.Send></button>
             </div>
         </div>
     )
