@@ -30,7 +30,7 @@ function Home() {
 
 
     return (
-        <div className='gap-2 h-full w-full flex' id="body">
+        <div className='gap-2 h-[100vh] w-full flex' id="body">
             <Sidebar/>
             {selectedChat && (
                 <ChatArea socket={socket}/>

@@ -19,6 +19,15 @@ export const FindActiveGame = async (chatId) => {
     }
 };
 
+export const FindAllGamesForUser = async (userId) => {
+    try {
+        const response = await axiosInstance.get(`/api/games/get-all-games/${userId}`);
+        return response.data;
+    } catch (error) {
+        return error.response.data;
+    }
+};
+
 export const EndGame = async (chatId) => {
     try {
         const response = await axiosInstance.post(`/api/games/end/${chatId}`);

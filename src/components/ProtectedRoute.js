@@ -10,6 +10,7 @@ import * as Icon from 'react-bootstrap-icons';
 import { io } from "socket.io-client";
 import {HeaderComponent} from "../pages/home/HeaderComponent";
 import {FooterComponent} from "../pages/home/components/FooterComponent";
+import Sidebar from "../pages/home/components/Sidebar";
 
 
 const socket = io("http://localhost:5000");

@@ -158,11 +158,14 @@ input:focus {
     background-color: #2F4050;
 }
 
-.ProfileList {
-    margin-top: 10%;
-    height: auto;
-    padding: 0;
-    width:40%;
+#History {
+    height: 100%;
+    width: 100%;
+    background-color: #2F4050;
+}
+
+#root {
+    height: 100vh;
 }
 
 #login {
@@ -182,18 +185,27 @@ input:focus {
     background-position: center ;
 }
 
-.ProfileList .row {
+.ProfileList {
+    margin-top: 10%;
+    height: auto;
+    padding: 0;
+    width:100%;
+}
+
+.ProfileList .ProfileRow {
     width: 100%;
     height: 60px;
     list-style-type: none;
     margin: 0;
     display: flex;
     flex-direction: row;
+    padding-left: 20%;
+    padding-right: 20%;
     color: white;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
 }
-.ProfileList .row:hover {
+.ProfileList .ProfileRow:hover {
     cursor: pointer;
     background-color: #293846;
 }
@@ -221,6 +233,12 @@ input:focus {
     background-color: #293846;
 }
 
+.row #icon {
+    flex: 30%;
+    place-items: center;
+    display: grid;
+}
+
 .SidebarList .friendRow {
     width: 100%;
     height: 60px;
@@ -232,10 +250,16 @@ input:focus {
     justify-content: center;
     align-items: center;
 }
+
 .SidebarList .friendRow:hover {
     cursor: pointer;
     background-color: #293846;
 }
+
+.row #title {
+    flex: 70%
+ }
+
 
 .friendRow {
     flex: 30%;
@@ -243,20 +267,36 @@ input:focus {
     display: grid;
 }
 
-.row #icon {
-    flex: 30%;
-    place-items: center;
-    display: grid;
-}
-
-.row #title {
-    flex: 70%
- }
-
 #footer {
     width: 100%;
     height: 16%;
     background-color: #2F4050;
 }
+
+.HistoryList {
+    margin-top: 10%;
+    height: auto;
+    padding: 0;
+    width:100%;
+}
+
+.HistoryList .HistoryRow {
+    width: 100%;
+    height: 60px;
+    list-style-type: none;
+    margin: 0;
+    display: flex;
+    padding-left: 33%;
+    padding-right: 33%;
+    flex-direction: row;
+    color: white;
+    justify-content: space-between;
+    align-items: center;
+}
+.HistoryList .HistoryRow:hover {
+    cursor: pointer;
+    background-color: #293846;
+}
+
 
 

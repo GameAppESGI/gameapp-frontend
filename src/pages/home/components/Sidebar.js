@@ -31,6 +31,11 @@ const SidebarData = [
         icon: <Icon.Dice4/>,
         link: "/profile"
     },
+    {
+        title: "Game History",
+        icon: <Icon.ClockHistory/>,
+        link: "/history"
+    },
 
 ]
 

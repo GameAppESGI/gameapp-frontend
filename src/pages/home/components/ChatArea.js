@@ -66,6 +66,7 @@ function ChatArea({socket}) {
             _id: generateInvitationId(),
             gameName: "morpion",
             chat: invitation.chat,
+            players: [invitation.sender, invitation.receiver]
         };
         try {
             const response = await AcceptGameInvitation(invitation._id);

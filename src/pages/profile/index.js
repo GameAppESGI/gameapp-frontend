@@ -11,10 +11,12 @@ export function Profile() {
         {
             title: user?.name,
             field: "Username:",
+            button: <Icon.Pencil/>
         },
         {
             title: user?.email,
             field: "Email:",
+            button: <Icon.Pencil/>
         },
         {
             title: user?.points,
@@ -46,7 +48,7 @@ export function Profile() {
             <Sidebar/>
             <div id="Profile" className="rounded flex justify-center">
                 <ul className="ProfileList">
-                    <li>{image && (
+                    <li className="ProfileRow">{image && (
                         <img src={image} className="w-32 h-32 rounded-full"/>
                     )}
                         <div>
@@ -57,11 +59,14 @@ export function Profile() {
                     </li>
                     {data.map((val, key) => {
                         return (
-                            <li key={key} className="row" onClick={() => {
-                                window.location.pathname = val.link
-                            }}>
-                                <div id="icon">{val.field}</div>
-                                <div id="title">{val.title}</div>
+                            <li key={key} className="ProfileRow">
+                                <div id="field">{val.field}</div>
+                                <div id="title">
+                                    <div className="flex">
+                                        {val.title}
+                                        <button className="pl-3">{val.button}</button>
+                                    </div>
+                                </div>
                             </li>);
                     })}
                 </ul>
