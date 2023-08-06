@@ -8,6 +8,8 @@ import { useSelector } from 'react-redux';
 import Loader from "./components/Loader"
 import {Profile} from "./pages/profile";
 import {History} from "./pages/history"
+import {CreateRoom} from "./pages/create-room";
+import {CreateGame} from "./pages/create-game";
 
 function App() {
   const {loader} = useSelector(state => state.loaderReducer);
@@ -20,6 +22,8 @@ function App() {
           <Route path="/" element={(<ProtectedRoute><Home/></ProtectedRoute>)}/>
           <Route path="/profile" element={(<ProtectedRoute><Profile/></ProtectedRoute>)}/>
           <Route path="/history" element={(<ProtectedRoute><History/></ProtectedRoute>)}/>
+          <Route path="/create-room" element={(<ProtectedRoute><CreateRoom/></ProtectedRoute>)}/>
+          <Route path="/create-game" element={(<ProtectedRoute><CreateGame/></ProtectedRoute>)}/>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
         </Routes>

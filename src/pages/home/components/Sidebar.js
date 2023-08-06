@@ -29,7 +29,7 @@ const SidebarData = [
     {
         title: "Create Room",
         icon: <Icon.Dice4/>,
-        link: "/profile"
+        link: "/create-room"
     },
     {
         title: "Game History",

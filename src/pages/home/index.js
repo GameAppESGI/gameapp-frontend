@@ -1,7 +1,5 @@
 import React, {useEffect} from 'react'
-import SearchUser from './components/SearchUser'
 import ChatArea from './components/ChatArea'
-import UserList from './components/UserList';
 import {useSelector} from 'react-redux';
 import {io} from "socket.io-client";
 import Sidebar from "./components/Sidebar";

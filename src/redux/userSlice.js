@@ -28,11 +28,15 @@ const userSlice = createSlice({
         },
         SetAllGames: (state, action) => {
             state.allGames = action.payload;
+        },
+        SetSelectedGame: (state, action) => {
+            state.selectedGame = action.payload;
         }
     },
 });
 
 export const {SetUser, SetAllUsers,
     SetAllChats, SetSelectedChat,
-    SetAllInvitations, SetAllGames} = userSlice.actions;
+    SetAllInvitations, SetAllGames,
+    SetSelectedGame} = userSlice.actions;
 export default userSlice.reducer;

@@ -45,3 +45,13 @@ export const SaveGameAction = async (chatId, gameAction) => {
         return error.response.data;
     }
 }
+
+export const UploadGame = async (gameFile) => {
+    try {
+        const response = await axiosInstance.post("/api/games/upload-game", gameFile);
+        return response.data;
+    }
+    catch (error) {
+        return error.response.data;
+    }
+}

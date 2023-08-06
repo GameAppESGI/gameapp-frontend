@@ -4,13 +4,14 @@ import {useDispatch, useSelector} from "react-redux";
 import {FindAllGamesForUser} from "../../api-calls/games";
 import {HideLoader, ShowLoader} from "../../redux/loaderSlice";
 import {toast} from "react-hot-toast";
-import {SetAllGames} from "../../redux/userSlice";
+import {SetAllGames, SetSelectedGame} from "../../redux/userSlice";
 import moment from "moment/moment";
 import * as Icon from 'react-bootstrap-icons';
+import {GameModal} from "./components/GameModal";
 export function History() {
-    const {user, allGames} = useSelector((state) => state.userReducer);
+    const {user, allGames, selectedGame} = useSelector((state) => state.userReducer);
     const dispatch = useDispatch();
-
+    const [openGameModal, setGameModal] = React.useState(false);
     const getGamesHistory = async () => {
         try {
             dispatch(ShowLoader());
@@ -25,6 +26,11 @@ export function History() {
         }
     }
 
+    const openGameReplay = (game) => {
+        setGameModal(true);
+        dispatch(SetSelectedGame(game))
+    }
+
     useEffect(() => {
         getGamesHistory();
     }, [user])
@@ -32,20 +38,25 @@ export function History() {
     return (
         user && <div className='gap-2 h-full w-full flex' id="body">
             <Sidebar/>
-            <div id="History" className="rounded flex justify-center">
-                <ul className="HistoryList">
-                    {allGames.map((game, key) => {
-                        return (
-                            <li key={key} className="HistoryRow">
-                                <div id="replay"><button className="rounded-full"><Icon.PlayBtn/></button></div>
-                                <div id="gameName">{game.gameName}</div>
-                                <div id="createdAt">{moment(game?.createdAt).format("DD MM YYYY")}</div>
-                            </li>
-                        )
-                    })}
-                </ul>
-
+            <div id="History" className="rounded justify-center">
+                <h1 id="HistoryTitle">Your Game History</h1>
+                <div className="HistoryContaier">
+                    <ul className="HistoryList">
+                        {allGames.map((game, key) => {
+                            return (
+                                <li key={key} className="HistoryRow">
+                                    <div id="replay"><button className="rounded-full" onClick={() => openGameReplay(game)}><Icon.PlayBtn/></button></div>
+                                    <div id="gameName">{game.gameName}</div>
+                                    <div id="createdAt">{moment(game?.createdAt).format("DD MM YYYY")}</div>
+                                </li>
+                            )
+                        })}
+                    </ul>
+                </div>
             </div>
+            {openGameModal && <GameModal
+                game={selectedGame}
+                closeModal={setGameModal}/>}
         </div>
     )
 }
