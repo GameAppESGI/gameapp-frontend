@@ -7,7 +7,6 @@ import {FriendsArea} from "./FriendsArea";
 import {HomePageArea} from "./components/HomePageArea";
 
 const socket = io("localhost:5000");
-console.log("SOCKET = ", socket);
 localStorage.setItem("socket", socket)
 
 function Home() {

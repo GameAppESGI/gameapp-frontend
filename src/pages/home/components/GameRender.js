@@ -28,9 +28,7 @@ function GameRender({socket, gameSocket, players}) {
             x: (Math.floor((pageX - coords.x) / 100)) * 100,
             y: (Math.floor((pageY - coords.y) / 100)) * 100,
         };
-        console.log(`Y = ${mousePos.current.y} && realY = ${pageY - coords.y}`)
         if (players.player2 === user._id) {
-            console.log(`This is ${user.name} as player2`)
             gameSocket.emit("update-game", {
                 actions: [
                     {
@@ -42,7 +40,6 @@ function GameRender({socket, gameSocket, players}) {
             }, players.player1);
         }
         if (players.player1 === user._id) {
-            console.log(`This is ${user.name} as player1`)
             const action = {
                 actions : [
                     {
@@ -111,7 +108,6 @@ function GameRender({socket, gameSocket, players}) {
 
         if (players.player1 === user._id) {
             gameSocket.on("send-game-update-to-other", (actionReceived) => {
-                console.log("action received from other");
                 saveGameAction(actionReceived);
                 gameSocket.emit("send-game-action-to-server", {
                     actions: [
@@ -126,7 +122,6 @@ function GameRender({socket, gameSocket, players}) {
         }
         gameSocket.off("send-game-data-to-clients").on("send-game-data-to-clients", async (data) => {
 
-            console.log("data received", data);
             if (!data.errors && data.game_state.game_over === false) {
                 setGridDisplay(data);
                 setGridLimits({width: data.displays[0].width, height: data.displays[0].height});
@@ -144,8 +139,6 @@ function GameRender({socket, gameSocket, players}) {
                         await UpdateWinner(user._id);
                     }
                 }
-                console.log("GAME OVER");
-                console.log(data);
                 try {
                     await EndGame(selectedChat._id);
                 } catch (error) {
@@ -156,7 +149,6 @@ function GameRender({socket, gameSocket, players}) {
 
         gameSocket.on("rematch-sent", (userId) => {
             if (userId !== user._id) {
-                console.log(`user ${user._id} received rematch request`)
                 setRematch(true);
                 setWinner(false);
             }

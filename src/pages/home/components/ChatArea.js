@@ -213,7 +213,6 @@ function ChatArea({socket}) {
 
         socket.off("game-invitation-accepted").on("game-invitation-accepted", (invitation) => {
             setPlayers({player1: invitation.receiver, player2: invitation.sender});
-            console.log(`PLAYERS from chatroom = ${players.player1} AND ${players.player2}`)
             toast.dismiss(invitation.toastId);
             gameSocket.emit("join-game-room", selectedChat._id, user.name);
             setGameContainer(true);
