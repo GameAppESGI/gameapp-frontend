@@ -63,7 +63,6 @@ function ChatArea({socket}) {
 
     const acceptGameInvitation = async (currentUserToastId, otherUserToastId, invitation) => {
         const game = {
-            _id: generateInvitationId(),
             gameName: "morpion",
             chat: invitation.chat,
             players: [invitation.sender, invitation.receiver]
@@ -81,9 +80,10 @@ function ChatArea({socket}) {
                 const gameStarted = await StartGame(game);
                 if (gameStarted.success) {
                     gameSocket.emit("join-game-room", invitation.chat, user.name, user._id);
+                    setGameContainer(true);
+                    setPlayers({player1: invitation.receiver, player2: invitation.sender});
                 }
-                setGameContainer(true);
-                setPlayers({player1: invitation.receiver, player2: invitation.sender});
+
             }
         } catch (error) {
             toast.error(error.message);
@@ -289,6 +289,7 @@ function ChatArea({socket}) {
     }, [messages]);
 
     return (
+        otherUser &&
         <div className='bg-white h-[95vh] border rounded flex flex-col justify-between p-2' id="chatArea">
             <div className="w-full">
                 <div className='flex gap-2 items-center mb-2 justify-between w-full'>

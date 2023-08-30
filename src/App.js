@@ -10,7 +10,9 @@ import {Profile} from "./pages/profile";
 import {History} from "./pages/history"
 import {CreateRoom} from "./pages/create-room";
 import {CreateGame} from "./pages/create-game";
-
+import "primereact/resources/themes/lara-light-indigo/theme.css";
+import "primereact/resources/primereact.min.css";
+import {GameRoom} from "./pages/game-room";
 function App() {
   const {loader} = useSelector(state => state.loaderReducer);
   return (
@@ -23,8 +25,9 @@ function App() {
           <Route path="/profile" element={(<ProtectedRoute><Profile/></ProtectedRoute>)}/>
           <Route path="/history" element={(<ProtectedRoute><History/></ProtectedRoute>)}/>
           <Route path="/create-room" element={(<ProtectedRoute><CreateRoom/></ProtectedRoute>)}/>
+          <Route path="/game-room" element={(<ProtectedRoute><GameRoom/></ProtectedRoute>)}/>
           <Route path="/create-game" element={(<ProtectedRoute><CreateGame/></ProtectedRoute>)}/>
-          <Route path="/login" element={<Login />} />
+          <Route path="/login" element={<Login/>} />
           <Route path="/register" element={<Register />} />
         </Routes>
       </BrowserRouter>

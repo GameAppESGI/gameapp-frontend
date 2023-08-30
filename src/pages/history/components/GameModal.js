@@ -1,28 +1,44 @@
 import "./Modal.css";
-import {useDispatch, useSelector} from "react-redux";
+import {useSelector} from "react-redux";
 import * as Icon from 'react-bootstrap-icons';
 import {io} from "socket.io-client";
-import React, {useEffect} from "react";
+import React, {useEffect, useRef} from "react";
+import {SaveGameAction} from "../../../api-calls/games";
+import {toast} from "react-hot-toast";
 
 export function GameModal({game, closeModal}) {
     const gameReplaySocket = io("http://localhost:3000/replay");
     const {user, allUsers} = useSelector((state) => state.userReducer);
     const [gridDisplay, setGridDisplay] = React.useState({});
-    const dispatch = useDispatch();
     const [gridLimits, setGridLimits] = React.useState({width: 0, height: 0});
     const [isLoading, setLoading] = React.useState(true);
     const [counter, setCounter] = React.useState(0);
+    const mousePos = useRef({x: 0, y: 0});
 
     const activateGameReplay = () => {
+        if(game.end) {
+            const gameActionsWithoutId = [];
+            game.actions.map((action) => gameActionsWithoutId.push({
+                player: action.player,
+                x: action.x,
+                y: action.y
+            }))
+            console.log("game actions = ", gameActionsWithoutId);
+            gameReplaySocket.emit("activate-game-replay", gameActionsWithoutId, game.end);
+        }
+        else {
+            const gameActionsWithoutId = [];
+            game.actions.map((action) => gameActionsWithoutId.push({
+                player: action.player,
+                x: action.x,
+                y: action.y
+            }))
+            for(let i=0; i<gameActionsWithoutId.length; i++) {
+                gameReplaySocket.emit("continue-game", gameActionsWithoutId[i]);
+            }
+        }
 
-        const gameActionsWithoutId = [];
-        game.actions.map((action) => gameActionsWithoutId.push({
-            player: action.player,
-            x: action.x,
-            y: action.y
-        }))
-        console.log("game actions = ", gameActionsWithoutId);
-        gameReplaySocket.emit("activate-game-replay", gameActionsWithoutId, user._id);
+
     }
 
     const closeModalAndDisconnectSocket = () => {
@@ -67,6 +83,33 @@ export function GameModal({game, closeModal}) {
             return username.toUpperCase();
     }
 
+    const saveGameAction = async (action) => {
+        try {
+            await SaveGameAction(game.chat, action)
+        } catch (error) {
+            toast.error(error);
+        }
+    }
+
+    const sendGameActionToServer = async (event) => {
+        const {currentTarget: svg, pageX, pageY} = event
+        const coords = svg.getBoundingClientRect()
+        mousePos.current = {
+            x: (Math.floor((pageX - coords.x) / 100)) * 100,
+            y: (Math.floor((pageY - coords.y) / 100)) * 100,
+        };
+
+        const action = {
+            player: 1,
+            x: mousePos.current.x,
+            y: mousePos.current.y
+        };
+
+        await saveGameAction(action);
+        console.log(`clicked on ${action}`);
+        gameReplaySocket.emit("continue-game", action);
+    }
+
     const goBackward = () => {
         setCounter(count => count -1);
     }
@@ -85,6 +128,12 @@ export function GameModal({game, closeModal}) {
         });
     }, []);
 
+    useEffect(() => {
+        if(user) {
+            activateGameReplay();
+        }
+    }, [user]);
+
     return (
         <div className="modalBackground">
             <div className="modalContainer">
@@ -96,9 +145,11 @@ export function GameModal({game, closeModal}) {
                     <hr/>
                 </div>
                 <div className="bodyModal">
-                    {activateGameReplay()}
                     <svg width={gridLimits.width} height={gridLimits.height} xmlns="http://www.w3.org/2000/svg"
-                         version="1.1">
+                         version="1.1"
+                    onClick={(e) => {
+                        sendGameActionToServer(e)
+                    }}>
                         {!isLoading && displayGameContent()}
                     </svg>
                 </div>

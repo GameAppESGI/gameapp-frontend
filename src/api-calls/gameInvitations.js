@@ -5,7 +5,7 @@ export const SendGameInvitation = async (invitation) => {
         const response = await axiosInstance.post("/api/game-invitations/new-invitation", invitation);
         return response.data;
     } catch (error) {
-        throw error;
+        return error.response.data;
     }
 };
 

@@ -52,7 +52,6 @@ function GameRender({socket, gameSocket, players}) {
             saveGameAction(action);
             gameSocket.emit("send-game-action-to-server", (action));
         }
-
     }
 
     const displayGameContent = () => {
@@ -123,6 +122,7 @@ function GameRender({socket, gameSocket, players}) {
         gameSocket.off("send-game-data-to-clients").on("send-game-data-to-clients", async (data) => {
 
             if (!data.errors && data.game_state.game_over === false) {
+                console.log(data);
                 setGridDisplay(data);
                 setGridLimits({width: data.displays[0].width, height: data.displays[0].height});
             } else if (data.errors) {

@@ -19,6 +19,7 @@ export function History() {
             dispatch(HideLoader());
             if (response.success) {
                 dispatch(SetAllGames(response.data));
+                console.log(allGames);
             }
         } catch (error) {
             dispatch(HideLoader());
@@ -26,6 +27,10 @@ export function History() {
         }
     }
 
+    const gameEnded = (game) => {
+        if(game.end) return ("Game Ended");
+        else return ("Still in play...");
+    }
     const openGameReplay = (game) => {
         setGameModal(true);
         dispatch(SetSelectedGame(game))
@@ -42,12 +47,13 @@ export function History() {
                 <h1 id="HistoryTitle">Your Game History</h1>
                 <div className="HistoryContaier">
                     <ul className="HistoryList">
-                        {allGames.map((game, key) => {
+                        {allGames && allGames.map((game, key) => {
                             return (
                                 <li key={key} className="HistoryRow">
                                     <div id="replay"><button className="rounded-full" onClick={() => openGameReplay(game)}><Icon.PlayBtn/></button></div>
                                     <div id="gameName">{game.gameName}</div>
                                     <div id="createdAt">{moment(game?.createdAt).format("DD MM YYYY")}</div>
+                                    <div id="end">{gameEnded(game)}</div>
                                 </li>
                             )
                         })}

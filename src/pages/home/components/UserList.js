@@ -15,7 +15,7 @@ function UserList({ searchKey, socket, onlineUsers }) {
     const createNewChat = async (receipentUserId) => {
         try {
             dispatch(ShowLoader());
-            const response = await CreateNewChat([user._id, receipentUserId]);
+            const response = await CreateNewChat({members:[user._id, receipentUserId]});
             dispatch(HideLoader());
             if (response.success) {
                 toast.success(response.message);

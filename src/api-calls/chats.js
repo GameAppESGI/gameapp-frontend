@@ -9,10 +9,17 @@ export const GetAllChats = async () => {
     }
 }
 
-export const CreateNewChat = async (members) => {
+export const CreateNewChat = async (data) => {
     try {
-        const response = await axiosInstance.post('/api/chats/create-new-chat', {members});
-        return response.data;
+        if(data.gameRoomChat === "") {
+            const response = await axiosInstance.post('/api/chats/create-new-chat', data.members);
+            return response.data;
+        }
+        else {
+            const response = await axiosInstance.post('/api/chats/create-new-chat', {members:data.members, gameRoomChat:data.gameRoomChat});
+            return response.data;
+        }
+
     } catch (error) {
         return error.response.data;
     }

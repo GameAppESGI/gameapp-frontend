@@ -1,0 +1,35 @@
+.SidePlayersContainer {
+    height: 80vh;
+    width: 10%;
+    background-color: #2F4050;
+}
+
+.SidePlayersList {
+    margin-top: 10%;
+    height: auto;
+    padding: 0;
+    width:100%;
+}
+
+.SidePlayersList .row {
+    width: 100%;
+    height: 60px;
+    list-style-type: none;
+    margin: 0;
+    display: flex;
+    flex-direction: row;
+    color: white;
+    justify-content: center;
+    align-items: center;
+}
+
+.SidePlayersList .row:hover {
+    cursor: pointer;
+    background-color: #293846;
+}
+
+.PartyContainer {
+    height: 80vh;
+    width: 100%;
+    background-color: #2F4050;
+}

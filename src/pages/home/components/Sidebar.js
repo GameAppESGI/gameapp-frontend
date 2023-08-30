@@ -27,7 +27,7 @@ const SidebarData = [
         link: "/profile"
     },
     {
-        title: "Create Room",
+        title: "Create/Join Room",
         icon: <Icon.Dice4/>,
         link: "/create-room"
     },

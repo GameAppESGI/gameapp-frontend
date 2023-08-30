@@ -129,10 +129,12 @@ input:focus {
 #body {
     margin: 5px;
     width:100%;
+    height: 80vh;
 }
 
 #chatArea {
     width: 70%;
+    height: 80vh;
 }
 #homePageArea {
     width: 70%;
@@ -147,7 +149,7 @@ input:focus {
 }
 
 .Sidebar {
-    height: 100%;
+    height: 80vh;
     width: 16%;
     background-color: #2F4050;
 }
@@ -175,7 +177,7 @@ input:focus {
 
 
 #Profile {
-    height: 100%;
+    height: 80vh;
     width: 100%;
     background-color: #2F4050;
 }
@@ -185,6 +187,7 @@ input:focus {
     color: white;
     margin-top: 5%;
 }
+
 
 .ProfileContainer {
     margin-top: 5%;
@@ -196,6 +199,7 @@ input:focus {
 .ProfileContainer .ProfileList {
     height: auto;
     width:100%;
+    padding: 0;
 }
 
 .ProfileContainer .ProfileList .ProfileRow {
@@ -275,7 +279,7 @@ input:focus {
 
 #footer {
     width: 100%;
-    height: 16%;
+    height: 10%;
     background-color: #2F4050;
 }
 
@@ -295,6 +299,8 @@ input:focus {
     border: dashed #673FD7;
     margin-left: 10%;
     margin-right: 10%;
+    height: 60%;
+    overflow-y: scroll;
 }
 
 .HistoryContaier .HistoryList {
@@ -317,9 +323,20 @@ input:focus {
     justify-content: space-between;
     align-items: center;
 }
+
+.HistoryContaier .HistoryList .HistoryRow #replay {
+    place-items: center;
+    display: grid;
+}
+
+
 .HistoryContaier .HistoryList .HistoryRow:hover {
     cursor: pointer;
     background-color: #293846;
+}
+
+#replay {
+    color: #29a829;
 }
 
 #CreateRoom {
@@ -383,6 +400,10 @@ input:focus {
     padding-left: 10px;
 }
 
+.file-send:hover {
+    background-color: #5231b0;
+}
+
 .DownloadGuideButton {
     background-color: #673FD7;
     border-radius: 4px;
@@ -393,5 +414,9 @@ input:focus {
     margin: 0;
     padding-right: 10px;
     padding-left: 10px;
+}
+
+.DownloadGuideButton:hover {
+    background-color: #5231b0;
 }
 
