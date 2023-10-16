@@ -16,10 +16,11 @@ import {
     GetAllInvitations,
     SendGameInvitation
 } from "../../../api-calls/gameInvitations";
-import {FindActiveGame, StartGame} from "../../../api-calls/games";
+import {FindActiveGame, GetAllGames, StartGame} from "../../../api-calls/games";
 import GameRender from "./GameRender";
 import {io} from "socket.io-client";
 import {generateInvitationId, sendGameInvitation} from "../helperFunctions";
+import {Dropdown} from "primereact/dropdown";
 
 const gameSocket = io("http://localhost:3000/game");
 
@@ -36,6 +37,9 @@ function ChatArea({socket}) {
     const otherUser = selectedChat.members.find(
         (mem) => mem._id !== user._id
     );
+    const [selectedGame, setSelectedGame] = React.useState("");
+    const [gamesAvailable, setGamesAvailable] = React.useState([]);
+    const [gamesWithLanguage, setGamesWithLanguage] = React.useState([]);
 
 
     const getAllGameInvitations = async () => {
@@ -52,8 +56,10 @@ function ChatArea({socket}) {
         }
     }
 
-    const sendNewGameInvitation = async () => {
-        const newInvitationResponse = await sendGameInvitation(user, selectedChat, otherUser, socket);
+    const sendNewGameInvitation = async (game) => {
+        const language = gamesWithLanguage.filter((e) => {return (e.name === game)});
+        console.log(language[0].language);
+        const newInvitationResponse = await sendGameInvitation(user, selectedChat, otherUser, socket, game, language[0].language);
         if (newInvitationResponse.success) {
             const newInvitation = newInvitationResponse.data;
             const updatedInvitations = [...allInvitations, newInvitation];
@@ -74,12 +80,14 @@ function ChatArea({socket}) {
                     toastId: currentUserToastId,
                     sender: invitation.sender,
                     receiver: invitation.receiver,
-                    chat: invitation.chat
+                    chat: invitation.chat,
+                    gameName: invitation.gameName,
+                    language: invitation.language
                 });
                 toast.dismiss(otherUserToastId);
                 const gameStarted = await StartGame(game);
                 if (gameStarted.success) {
-                    gameSocket.emit("join-game-room", invitation.chat, user.name, user._id);
+                    gameSocket.emit("join-game-room", invitation.chat, user.name, user._id, invitation.game, invitation.language);
                     setGameContainer(true);
                     setPlayers({player1: invitation.receiver, player2: invitation.sender});
                 }
@@ -180,7 +188,19 @@ function ChatArea({socket}) {
         }
     };
 
+    const getAllGamesAvailable = async () => {
+        const getAllGamesResponse = await GetAllGames();
+        const gameList = [];
+        if(getAllGamesResponse.success) {
+            setGamesWithLanguage(getAllGamesResponse.data);
+            getAllGamesResponse.data.forEach((game) => gameList.push(game.name));
+            setGamesAvailable(gameList);
+        }
+    }
+
+
     useEffect(() => {
+        getAllGamesAvailable();
         getAllGameInvitations();
         getMessages();
         if (selectedChat?.lastMessage?.sender !== user._id) {
@@ -214,7 +234,8 @@ function ChatArea({socket}) {
         socket.off("game-invitation-accepted").on("game-invitation-accepted", (invitation) => {
             setPlayers({player1: invitation.receiver, player2: invitation.sender});
             toast.dismiss(invitation.toastId);
-            gameSocket.emit("join-game-room", selectedChat._id, user.name);
+            gameSocket.emit("join-game-room", selectedChat._id, user.name, invitation.game, invitation.language);
+            console.log("LANGUAGE = ? ", invitation.language);
             setGameContainer(true);
         })
 
@@ -308,10 +329,9 @@ function ChatArea({socket}) {
                     </div>
                     <div>
                         {!hideGameContainer && (
-                            <button onClick={sendNewGameInvitation} className="border-1 rounded p-1 m-1"
-                                    id="PlayButton">
-                                Play
-                            </button>)}
+                            <Dropdown value={selectedGame}
+                                      onChange={(e) => sendNewGameInvitation(e.value)}
+                            options={gamesAvailable} placeholder="Play"></Dropdown>)}
                     </div>
                 </div>
                 <hr/>

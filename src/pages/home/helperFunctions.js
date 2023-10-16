@@ -3,14 +3,15 @@ import {toast} from "react-hot-toast";
 export function generateInvitationId() {
     return Math.random().toString(36).substr(2, 9);
 }
-export const sendGameInvitation = async (user, selectedChat, otherUser, socket) => {
+export const sendGameInvitation = async (user, selectedChat, otherUser, socket, game, language) => {
     try {
         const invitation = {
             _id: generateInvitationId(),
             chat: selectedChat._id,
             sender: user._id,
             receiver: otherUser._id,
-            game: "morpion"
+            game: game,
+            language: language
         };
 
 

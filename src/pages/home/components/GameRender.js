@@ -78,7 +78,7 @@ function GameRender({socket, gameSocket, players}) {
     }
 
     const sendRematchInvitation = async () => {
-        const newInvitationResponse = await sendGameInvitation(user, selectedChat, otherUser, socket);
+        const newInvitationResponse = await sendGameInvitation(user, selectedChat, otherUser, socket, "morpion", "python");
         if (newInvitationResponse.success) {
             const newInvitation = newInvitationResponse.data;
             const updatedInvitations = [...allInvitations, newInvitation];

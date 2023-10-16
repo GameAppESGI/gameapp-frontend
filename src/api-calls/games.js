@@ -55,3 +55,23 @@ export const UploadGame = async (gameFile) => {
         return error.response.data;
     }
 }
+
+export const UploadGameToDB = async (game) => {
+    try {
+        const response = await axiosInstance.post("/api/games/upload-game-db", game);
+        return response.data;
+    }
+    catch (error) {
+        return error.response.data;
+    }
+}
+
+export const GetAllGames = async () => {
+    try {
+        const response = await axiosInstance.post("/api/games/get-all-games");
+        return response.data;
+    }
+    catch (error) {
+        return error.response.data;
+    }
+}

@@ -135,6 +135,7 @@ input:focus {
 #chatArea {
     width: 70%;
     height: 80vh;
+    background: #2F4050;
 }
 #homePageArea {
     width: 70%;
@@ -419,4 +420,3 @@ input:focus {
 .DownloadGuideButton:hover {
     background-color: #5231b0;
 }
-

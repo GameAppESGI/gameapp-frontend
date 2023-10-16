@@ -1,7 +1,10 @@
+
+
 .SidePlayersContainer {
     height: 80vh;
-    width: 10%;
+    width: 15%;
     background-color: #2F4050;
+    border: 3px solid;
 }
 
 .SidePlayersList {
@@ -12,15 +15,17 @@
 }
 
 .SidePlayersList .row {
-    width: 100%;
+    width: 80%;
     height: 60px;
     list-style-type: none;
-    margin: 0;
     display: flex;
+    margin-left: 10%;
+    margin-right: 10%;
     flex-direction: row;
     color: white;
     justify-content: center;
     align-items: center;
+
 }
 
 .SidePlayersList .row:hover {
@@ -28,8 +33,42 @@
     background-color: #293846;
 }
 
+#body {
+    background-color: #2F4050;
+}
+
 .PartyContainer {
     height: 80vh;
     width: 100%;
     background-color: #2F4050;
+    margin-left: 10%;
+    margin-right: 10%;
 }
+
+.row #icon {
+    flex: 30%;
+    place-items: center;
+    display: grid;
+}
+
+.row #name {
+    flex: 70%
+}
+
+.GameChatContainer {
+    height: 70vh;
+    background-color: white;
+
+}
+
+.GameContainer {
+    margin: 5px;
+    background-color: white;
+}
+
+.ChatContainer {
+    margin: 5px;
+    background-color: white;
+}
+
+
