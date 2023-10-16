@@ -69,7 +69,7 @@ function ChatArea({socket}) {
 
     const acceptGameInvitation = async (currentUserToastId, otherUserToastId, invitation) => {
         const game = {
-            gameName: "morpion",
+            gameName: invitation.game,
             chat: invitation.chat,
             players: [invitation.sender, invitation.receiver]
         };
