@@ -25,8 +25,8 @@ function GameRender({socket, gameSocket, players}) {
         const {currentTarget: svg, pageX, pageY} = event
         const coords = svg.getBoundingClientRect()
         mousePos.current = {
-            x: (Math.floor((pageX - coords.x) / 100)) * 100,
-            y: (Math.floor((pageY - coords.y) / 100)) * 100,
+            x: (Math.floor((pageX - coords.x) / 50)) * 50,
+            y: (Math.floor((pageY - coords.y) / 50)) * 50,
         };
         if (players.player2 === user._id) {
             gameSocket.emit("update-game", {
