@@ -8,8 +8,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Installez Node.js et npm
-RUN apt-get update && apt-get install -y nodejs
-RUN npm install -g npm
+RUN apt-get update && apt-get install -y nodejs npm
 
 # Installez les dépendances en utilisant npm
 RUN npm install
