@@ -26,4 +26,4 @@ COPY --from=build /app/build /usr/share/nginx/html
 EXPOSE 8080
 
 # La commande CMD pour démarrer Nginx dans le conteneur
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["nginx"]
