@@ -26,8 +26,8 @@ FROM nginx:1.21
 COPY --from=build /app/build /usr/share/nginx/html
 
 # Exposez le port 8080
-EXPOSE 8080
+EXPOSE 3000
 
-# La commande CMD pour démarrer Nginx dans le conteneur
-CMD ["npm", "run", "start-prod"]
+# La commande CMD pour démarrer Nginx dans le conteneur est définie dans l'image de base Nginx
+
 
