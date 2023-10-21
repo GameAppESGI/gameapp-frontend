@@ -7,6 +7,10 @@ WORKDIR /app
 # Copiez le fichier package.json et le fichier package-lock.json (s'il existe) dans le conteneur
 COPY package*.json ./
 
+# Installez Node.js et npm
+RUN apt-get update && apt-get install -y nodejs
+RUN npm install -g npm
+
 # Installez les dépendances en utilisant npm
 RUN npm install
 
@@ -22,7 +26,7 @@ FROM nginx:1.21
 # Copiez les fichiers de build de l'application React dans le répertoire de travail de Nginx
 COPY --from=build /app/build /usr/share/nginx/html
 
-# Exposez le port 80
+# Exposez le port 8080
 EXPOSE 8080
 
 # La commande CMD pour démarrer Nginx dans le conteneur
