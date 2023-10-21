@@ -25,4 +25,6 @@ COPY --from=build /app/build /usr/share/nginx/html
 # Exposez le port 80
 EXPOSE 80
 
-# La commande CMD pour démarrer Nginx est déjà définie dans l'image de base Nginx
+# La commande CMD pour démarrer Nginx dans le conteneur
+CMD ["npm", "run", "start-prod"]
+
