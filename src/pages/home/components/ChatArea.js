@@ -71,7 +71,8 @@ function ChatArea({socket}) {
         const game = {
             gameName: invitation.game,
             chat: invitation.chat,
-            players: [invitation.sender, invitation.receiver]
+            players: [invitation.sender, invitation.receiver],
+            language: invitation.language
         };
         try {
             const response = await AcceptGameInvitation(invitation._id);

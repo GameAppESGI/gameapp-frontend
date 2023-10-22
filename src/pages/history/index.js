@@ -1,7 +1,7 @@
 import Sidebar from "../home/components/Sidebar";
 import React, {useEffect, useState} from "react";
 import {useDispatch, useSelector} from "react-redux";
-import {FindAllGamesForUser} from "../../api-calls/games";
+import {FindAllGamesForUser, GetAllGames} from "../../api-calls/games";
 import {HideLoader, ShowLoader} from "../../redux/loaderSlice";
 import {toast} from "react-hot-toast";
 import {SetAllGames, SetSelectedGame} from "../../redux/userSlice";
@@ -12,6 +12,20 @@ export function History() {
     const {user, allGames, selectedGame} = useSelector((state) => state.userReducer);
     const dispatch = useDispatch();
     const [openGameModal, setGameModal] = React.useState(false);
+    const [gamesAvailable, setGamesAvailable] = React.useState([]);
+    const [gamesWithLanguage, setGamesWithLanguage] = React.useState([]);
+
+
+    const getAllGamesAvailable = async () => {
+        const getAllGamesResponse = await GetAllGames();
+        const gameList = [];
+        if(getAllGamesResponse.success) {
+            setGamesWithLanguage(getAllGamesResponse.data);
+            getAllGamesResponse.data.forEach((game) => gameList.push(game.name));
+            setGamesAvailable(gameList);
+        }
+    }
+
     const getGamesHistory = async () => {
         try {
             dispatch(ShowLoader());
@@ -33,11 +47,13 @@ export function History() {
     }
     const openGameReplay = (game) => {
         setGameModal(true);
-        dispatch(SetSelectedGame(game))
+        console.log(`game name  = ${game.language}`);
+        dispatch(SetSelectedGame(game));
     }
 
     useEffect(() => {
         getGamesHistory();
+        getAllGamesAvailable();
     }, [user])
 
     return (

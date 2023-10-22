@@ -24,7 +24,7 @@ export function GameModal({game, closeModal}) {
                 y: action.y
             }))
             console.log("game actions = ", gameActionsWithoutId);
-            gameReplaySocket.emit("activate-game-replay", gameActionsWithoutId, game.end);
+            gameReplaySocket.emit("activate-game-replay", gameActionsWithoutId, game.end, game.gameName, game.language);
         }
         else {
             const gameActionsWithoutId = [];

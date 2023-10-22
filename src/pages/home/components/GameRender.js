@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {useDispatch, useSelector} from "react-redux";
 import {EndGame, SaveGameAction} from "../../../api-calls/games";
 import {toast} from "react-hot-toast";
@@ -9,31 +9,60 @@ import {UpdateWinner} from "../../../api-calls/users";
 function GameRender({socket, gameSocket, players}) {
     const {selectedChat, user, allInvitations} = useSelector((state) => state.userReducer);
     const [gridDisplay, setGridDisplay] = React.useState({});
+    const [gridOnlyDisplay, setGridOnlyDisplay] = React.useState({});
     const [gridLimits, setGridLimits] = React.useState({width: 0, height: 0});
-    const mousePos = useRef({x: 0, y: 0});
     const [gameOver, setGameOver] = React.useState(false);
     const [rematchGame, setRematch] = React.useState(false);
     const [rematchDisabled, setRematchDisabled] = React.useState(false);
     const [winner, setWinner] = React.useState(false);
+    const gridInit = useRef(false);
     const dispatch = useDispatch();
     let verifySocket = 0;
     const otherUser = selectedChat.members.find(
         (mem) => mem._id !== user._id
     );
-    const actions = [];
     const sendGameActionToServer = (event) => {
         const {currentTarget: svg, pageX, pageY} = event
         const coords = svg.getBoundingClientRect()
-        mousePos.current = {
-            x: (Math.floor((pageX - coords.x) / 50)) * 50,
-            y: (Math.floor((pageY - coords.y) / 50)) * 50,
-        };
+        let lines = [];
+        for (let i = 0; i < gridOnlyDisplay.content.length; i++) {
+            if (gridOnlyDisplay.content[i].tag === "line") {
+                lines.push({
+                    x1: gridOnlyDisplay.content[i].x1,
+                    y1: gridOnlyDisplay.content[i].y1,
+                    x2: gridOnlyDisplay.content[i].x2,
+                    y2: gridOnlyDisplay.content[i].y2
+                });
+            }
+        }
+
+        lines.push({x1:"0",y1:"0",x2:gridLimits.width,y2:"0"});
+        lines.push({x1:"0",y1:gridLimits.height,x2:gridLimits.width,y2:gridLimits.height});
+        lines.push({x1:"0",y1:"0",x2:"0",y2:gridLimits.height});
+        lines.push({x1:gridLimits.width,y1:"0",x2:gridLimits.width,y2:gridLimits.height});
+
+        let minX = "0";
+        let minY = "0";
+
+        for(let i=0; i < lines.length; i++) {
+            if((parseInt(pageX - coords.x) >= parseInt(lines[i].x1)) && (parseInt(lines[i].x1) >= parseInt(minX))) {
+                minX = lines[i].x1;
+            }
+        }
+
+        for(const line of lines) {
+            if((parseInt(pageY - coords.y) >= parseInt(line.y1)) && (parseInt(line.y1) > parseInt(minY))) {
+                minY = line.y1;
+            }
+        }
+
+
         if (players.player2 === user._id) {
             gameSocket.emit("update-game", {
                 actions: [
                     {
-                        x: mousePos.current.x,
-                        y: mousePos.current.y,
+                        x: minX,
+                        y: minY,
                         player: 2
                     }
                 ]
@@ -41,10 +70,10 @@ function GameRender({socket, gameSocket, players}) {
         }
         if (players.player1 === user._id) {
             const action = {
-                actions : [
+                actions: [
                     {
-                        x: mousePos.current.x,
-                        y: mousePos.current.y,
+                        x: minX,
+                        y: minY,
                         player: 1
                     }
                 ]
@@ -52,6 +81,7 @@ function GameRender({socket, gameSocket, players}) {
             saveGameAction(action);
             gameSocket.emit("send-game-action-to-server", (action));
         }
+
     }
 
     const displayGameContent = () => {
@@ -102,7 +132,6 @@ function GameRender({socket, gameSocket, players}) {
     }
 
 
-
     useEffect(() => {
 
         if (players.player1 === user._id) {
@@ -125,6 +154,11 @@ function GameRender({socket, gameSocket, players}) {
                 console.log(data);
                 setGridDisplay(data);
                 setGridLimits({width: data.displays[0].width, height: data.displays[0].height});
+                if (gridInit.current === false) {
+                    gridInit.current = true;
+                    setGridOnlyDisplay(() => data.displays[0]);
+
+                }
             } else if (data.errors) {
                 console.log(data);
                 //toast.error(data.errors[0].type);
@@ -132,10 +166,10 @@ function GameRender({socket, gameSocket, players}) {
                 setGridDisplay(data);
                 setGameOver(true);
                 setRematchDisabled(false);
-                if((data.game_state.scores[0] === 1) && (user._id === players.player1)) {
+                if ((data.game_state.scores[0] === 1) && (user._id === players.player1)) {
                     setWinner(true);
                     verifySocket++;
-                    if(verifySocket === 1) {
+                    if (verifySocket === 1) {
                         await UpdateWinner(user._id);
                     }
                 }
@@ -158,16 +192,17 @@ function GameRender({socket, gameSocket, players}) {
     return (
         <div id="GameRender" className="flex w-[100vh]">
             <div className="flex flex-col justify-center align-items-center w-[100vh]" id="gameSVG">
-                {(gameOver && !rematchGame) && <div className="flex flex-col justify-center align-items-center p-5 w-[100vh]">
-                    <p>GAME OVER</p>
-                    {winner && (<p>YOU WON</p>)}
-                    {!winner && (<p>YOU LOST</p>)}
-                    <div className="flex">
-                        <button disabled={rematchDisabled} onClick={rematch} className="border-1 rounded p-1 m-1"
-                                id="RematchButton">Rematch
-                        </button>
-                    </div>
-                </div>}
+                {(gameOver && !rematchGame) &&
+                    <div className="flex flex-col justify-center align-items-center p-5 w-[100vh]">
+                        <p>GAME OVER</p>
+                        {winner && (<p>YOU WON</p>)}
+                        {!winner && (<p>YOU LOST</p>)}
+                        <div className="flex">
+                            <button disabled={rematchDisabled} onClick={rematch} className="border-1 rounded p-1 m-1"
+                                    id="RematchButton">Rematch
+                            </button>
+                        </div>
+                    </div>}
                 <svg width={gridLimits.width} height={gridLimits.height} xmlns="http://www.w3.org/2000/svg"
                      version="1.1"
                      onClick={(e) => {
