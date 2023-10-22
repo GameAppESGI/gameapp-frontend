@@ -187,6 +187,15 @@ function GameRender({socket, gameSocket, players}) {
                 setWinner(false);
             }
         })
+        gameSocket.on("player-disconnected", () => {
+            try {
+                EndGame(selectedChat._id);
+                toast.success(`${otherUser.name} disconnected, game ended`);
+                window.location.reload(false);
+            } catch (error) {
+                toast.error(error.message);
+            }
+        })
     }, [selectedChat, user, players, rematchGame]);
 
     return (
