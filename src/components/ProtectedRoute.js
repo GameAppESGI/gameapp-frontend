@@ -13,7 +13,7 @@ import {FooterComponent} from "../pages/home/components/FooterComponent";
 import Sidebar from "../pages/home/components/Sidebar";
 
 
-const socket = io("http://localhost:5000");
+const socket = io("http://34.155.239.150");
     function ProtectedRoute({children}) {
         const {user} = useSelector(state => state.userReducer);
         const dispatch = useDispatch();
