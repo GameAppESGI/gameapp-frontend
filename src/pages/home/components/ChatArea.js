@@ -34,6 +34,8 @@ function ChatArea({socket}) {
     const [players, setPlayers] = React.useState({player1: "", player2: ""});
     const [showEmojiPicker, setShowEmojiPicker] = React.useState(false);
     const [gameActive, setGameActive] = React.useState({});
+    let miau = "";
+    const [gameDetailsForRematch, setGameDetailsForRematch] = React.useState({gameName: "", gameLanguage: ""});
     const otherUser = selectedChat.members.find(
         (mem) => mem._id !== user._id
     );
@@ -59,6 +61,8 @@ function ChatArea({socket}) {
     const sendNewGameInvitation = async (game) => {
         const language = gamesWithLanguage.filter((e) => {return (e.name === game)});
         console.log(language[0].language);
+        miau = game;
+        setGameDetailsForRematch(({gameName= "", gameLanguage= ""}) => ({gameName: game, gameLanguage: language[0].language}));
         const newInvitationResponse = await sendGameInvitation(user, selectedChat, otherUser, socket, game, language[0].language);
         if (newInvitationResponse.success) {
             const newInvitation = newInvitationResponse.data;
@@ -359,7 +363,7 @@ function ChatArea({socket}) {
                     </div>
                 </div>
                 {hideGameContainer && (<div className='border-1 m-1 rounded-2xl flex w-full' id="game">
-                    <GameRender socket={socket} gameSocket={gameSocket} players={players} gameActive={gameActive}/>
+                    <GameRender socket={socket} gameSocket={gameSocket} players={players} gameDetails={gameDetailsForRematch}/>
                 </div>)}
             </div>
             <div className='h-10 rounded-2xl border flex justify-between text-xs relative'>

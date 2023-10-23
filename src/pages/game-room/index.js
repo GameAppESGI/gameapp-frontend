@@ -8,6 +8,7 @@ import moment from "moment/moment";
 import {GetMessages, SendMessage} from "../../api-calls/messages";
 import {toast} from "react-hot-toast";
 import {HideLoader, ShowLoader} from "../../redux/loaderSlice";
+
 export function GameRoom() {
     const dispatch = useDispatch();
     const gameRoom = window["gameRoom"];
@@ -20,6 +21,7 @@ export function GameRoom() {
     const [messages = [], setMessages] = React.useState([]);
 
     const sendNewMessage = async () => {
+        console.log(connectedPlayers);
         try {
             const message = {
                 chat: gameRoom.chat._id,
@@ -56,21 +58,43 @@ export function GameRoom() {
 
 
     useEffect(() => {
-        getMessages();
-        gameRoomSocket.on("connected", (players) => {
-            setConnectedPlayers(players);
-        });
-        gameRoomSocket.on("receive-message", (message) => {
-            setMessages((messages) => [...messages, message]);
-            console.log(message.text);
-        })
+        if(user) {
+            getMessages();
+            gameRoomSocket.emit("join-game-room", gameRoom._id, user.name);
+            gameRoomSocket.emit("connected", user.name);
+            gameRoomSocket.on("online-users", (users) => {
+                setConnectedPlayers(users)
+            });
+            gameRoomSocket.on("player-disconnect", (username) => {
+                console.log(`player ${username} disconnected`);
+            })
+            gameRoomSocket.off("receive-message").on("receive-message", (message) => {
+                if(gameRoom.chat._id === message.chat) {
+                    setMessages((messages) => [...messages, message]);
+                }
+            })
+
+        }
+    }, [user])
+
+    useEffect(() => {
+        if(user) {
+            gameRoomSocket.off("receive-message").on("receive-message", (message) => {
+                if(gameRoom.chat._id === message.chat) {
+                    setMessages((messages) => [...messages, message]);
+                }
+            })
+
+        }
     }, [])
 
     useEffect(() => {
-        if (user) {
-            gameRoomSocket.emit("join-game-room", gameRoom._id, user.name);
-        }
-    }, []);
+        setTimeout(() => {
+            const messagesContainer = document.getElementById('messages');
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }, 400);
+
+    }, [messages]);
 
     return (user && <div className='gap-2 flex rounded' id="body">
         <div className="SidePlayersContainer rounded border-b-green-800">
@@ -91,7 +115,7 @@ export function GameRoom() {
             <p>Room ID : {gameRoom._id}</p>
             <div className="GameChatContainer border-1 border-b-gray-300 rounded-2xl flex w-full">
                 <div className={`ChatContainer border-1 border-b-gray-300 flex flex-col rounded-2xl ${hideGameContainer ? "w-1/3" : "w-full"}`}>
-                    <div className="messages overflow-y-scroll flex border-1 m-1 rounded-2xl p-1 w-full h-full">
+                    <div className="overflow-y-scroll flex border-1 m-1 rounded-2xl p-1 w-full h-full" id="messages">
                         <div className='flex flex-col gap-1 w-full'>
                             {messages.map((message) => {
                                 const isCurrentUserTheSender = message.sender === user._id;

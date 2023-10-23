@@ -6,7 +6,7 @@ import {sendGameInvitation} from "../helperFunctions";
 import {SetAllInvitations} from "../../../redux/userSlice";
 import {UpdateWinner} from "../../../api-calls/users";
 
-function GameRender({socket, gameSocket, players}) {
+function GameRender({socket, gameSocket, players, gameDetails}) {
     const {selectedChat, user, allInvitations} = useSelector((state) => state.userReducer);
     const [gridDisplay, setGridDisplay] = React.useState({});
     const [gridOnlyDisplay, setGridOnlyDisplay] = React.useState({});
@@ -107,8 +107,8 @@ function GameRender({socket, gameSocket, players}) {
         return svgElements;
     }
 
-    const sendRematchInvitation = async () => {
-        const newInvitationResponse = await sendGameInvitation(user, selectedChat, otherUser, socket, "morpion", "python");
+    const sendRematchInvitation = async (game, language) => {
+        const newInvitationResponse = await sendGameInvitation(user, selectedChat, otherUser, socket, game, language);
         if (newInvitationResponse.success) {
             const newInvitation = newInvitationResponse.data;
             const updatedInvitations = [...allInvitations, newInvitation];
@@ -120,7 +120,8 @@ function GameRender({socket, gameSocket, players}) {
         gameSocket.emit("send-rematch", user._id);
         setRematchDisabled(true);
         setGameOver(false);
-        sendRematchInvitation();
+        console.log("gameActive = ", gameDetails);
+        sendRematchInvitation(gameDetails.gameName, gameDetails.gameLanguage);
     }
 
     const saveGameAction = async (action) => {
