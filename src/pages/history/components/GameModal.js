@@ -7,7 +7,7 @@ import {SaveGameAction} from "../../../api-calls/games";
 import {toast} from "react-hot-toast";
 
 export function GameModal({game, closeModal}) {
-    const gameReplaySocket = io("http://localhost:3000/replay");
+    const gameReplaySocket = io("http://34.155.51.27/replay");
     const {user, allUsers} = useSelector((state) => state.userReducer);
     const [gridDisplay, setGridDisplay] = React.useState({});
     const [gridLimits, setGridLimits] = React.useState({width: 0, height: 0});

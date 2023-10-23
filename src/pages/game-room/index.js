@@ -12,7 +12,7 @@ import {HideLoader, ShowLoader} from "../../redux/loaderSlice";
 export function GameRoom() {
     const dispatch = useDispatch();
     const gameRoom = window["gameRoom"];
-    const gameRoomSocket = io("http://localhost:3000/gameroom");
+    const gameRoomSocket = io("http://34.155.51.27/gameroom");
     const [connectedPlayers, setConnectedPlayers] = useState([]);
     const [newMessage, setNewMessage] = React.useState("");
     const {user} = useSelector((state) => state.userReducer);

@@ -22,7 +22,7 @@ import {io} from "socket.io-client";
 import {generateInvitationId, sendGameInvitation} from "../helperFunctions";
 import {Dropdown} from "primereact/dropdown";
 
-const gameSocket = io("http://localhost:3000/game");
+const gameSocket = io("http://34.155.51.27/game");
 
 function ChatArea({socket}) {
     const dispatch = useDispatch();

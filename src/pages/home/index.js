@@ -6,7 +6,7 @@ import Sidebar from "./components/Sidebar";
 import {FriendsArea} from "./FriendsArea";
 import {HomePageArea} from "./components/HomePageArea";
 
-const socket = io("localhost:5000");
+const socket = io("34.155.239.150");
 localStorage.setItem("socket", socket)
 
 function Home() {

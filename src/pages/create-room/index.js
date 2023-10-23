@@ -63,7 +63,7 @@ export function CreateRoom() {
             if(createGameRoomResponse.success) {
                 toast.success("Game Room Created");
                 setInputValue("");
-                let newWindow = window.open("http://localhost:3000/game-room","_blank")
+                let newWindow = window.open("http://34.155.51.27/game-room","_blank")
                 newWindow["gameRoom"] = createGameRoomResponse.data;
             }
             else {
@@ -75,7 +75,7 @@ export function CreateRoom() {
 
     const joinGameRoom = async () => {
         const joinGameRoomResponse = await JoinGameRoom(inputValue, user._id);
-        let newWindow = window.open("http://localhost:3000/game-room","_blank")
+        let newWindow = window.open("http://34.155.51.27/game-room","_blank")
         newWindow["gameRoom"] = joinGameRoomResponse.data;
     }
 
